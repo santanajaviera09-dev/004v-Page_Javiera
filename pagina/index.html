@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mastering Exceptions | Neon Dev Edition</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background-color: #0d0d12;
+            color: #e2e8f0;
+            font-family: 'Rajdhani', sans-serif;
+        }
+        .code-font { font-family: 'Fira Code', monospace; }
+        
+        .neon-border {
+            border: 1px solid #00f2ff;
+            box-shadow: 0 0 10px rgba(0, 242, 255, 0.2);
+        }
+        .neon-text-cyan { text-shadow: 0 0 8px #00f2ff; color: #00f2ff; }
+        .neon-text-pink { text-shadow: 0 0 8px #ff007a; color: #ff007a; }
+        .neon-text-yellow { text-shadow: 0 0 8px #ffcc00; color: #ffcc00; }
+        
+        .card-glass {
+            background: rgba(20, 20, 25, 0.8);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .terminal-header {
+            background: #1a1a24;
+            border-bottom: 1px solid #333;
+        }
+
+        .btn-neon {
+            transition: 0.3s;
+            border: 1px solid #00f2ff;
+        }
+        .btn-neon:hover {
+            background: #00f2ff;
+            color: #000;
+            box-shadow: 0 0 20px #00f2ff;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <header class="max-w-5xl mx-auto text-center mb-16">
+        <div class="inline-block px-4 py-1 border border-cyan-500 text-cyan-500 rounded-full mb-4 animate-pulse">
+            SISTEMA OPERATIVO DE APRENDIZAJE V1.0
+        </div>
+        <h1 class="text-6xl md:text-8xl font-bold tracking-tighter mb-4">
+            GESTIÓN DE <span class="neon-text-pink">EXCEPCIONES</span>
+        </h1>
+        <p class="text-xl text-zinc-400 code-font">Manejo de errores en tiempo de ejecución sin detener el sistema.</p>
+    </header>
+
+    <main class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-8">
+        
+        <section class="md:col-span-7 space-y-6">
+            <div class="card-glass p-8 rounded-2xl neon-border">
+                <h2 class="text-3xl font-bold mb-4 flex items-center gap-3">
+                    <i class="fa-solid fa-brain text-cyan-400"></i> ¿Qué es esto?
+                </h2>
+                <p class="text-lg text-zinc-300 leading-relaxed">
+                    Es el escudo de tu software. Permite detectar errores antes de que el programa "crashee", mejorando la <span class="neon-text-cyan font-bold">Robustez</span> y la <span class="neon-text-pink font-bold">Experiencia de Usuario</span>.
+                </p>
+                <div class="mt-6 grid grid-cols-2 gap-4">
+                    <div class="bg-zinc-900/50 p-4 rounded-lg border-l-4 border-cyan-500">
+                        <span class="block text-xs uppercase text-zinc-500">Objetivo 01</span>
+                        <span class="font-bold">No detenerse abruptamente</span>
+                    </div>
+                    <div class="bg-zinc-900/50 p-4 rounded-lg border-l-4 border-pink-500">
+                        <span class="block text-xs uppercase text-zinc-500">Objetivo 02</span>
+                        <span class="font-bold">Mensajes claros al usuario</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="card-glass p-4 rounded-xl border border-red-500/30">
+                    <h3 class="neon-text-pink font-bold mb-2 uppercase text-sm">ValueError</h3>
+                    <p class="text-xs text-zinc-400 italic">Dato incorrecto (ej: "hola" a int)</p>
+                </div>
+                <div class="card-glass p-4 rounded-xl border border-yellow-500/30">
+                    <h3 class="neon-text-yellow font-bold mb-2 uppercase text-sm">ZeroDivisionError</h3>
+                    <p class="text-xs text-zinc-400 italic">División por 0 fatal</p>
+                </div>
+                <div class="card-glass p-4 rounded-xl border border-cyan-500/30">
+                    <h3 class="neon-text-cyan font-bold mb-2 uppercase text-sm">FileNotFoundError</h3>
+                    <p class="text-xs text-zinc-400 italic">Archivo inexistente</p>
+                </div>
+            </div>
+        </section>
+
+        <aside class="md:col-span-5">
+            <div class="rounded-xl overflow-hidden shadow-2xl border border-zinc-700">
+                <div class="terminal-header px-4 py-2 flex gap-2">
+                    <div class="w-3 height-3 w-3 h-3 rounded-full bg-red-500"></div>
+                    <div class="w-3 height-3 w-3 h-3 rounded-full bg-yellow-500"></div>
+                    <div class="w-3 height-3 w-3 h-3 rounded-full bg-green-500"></div>
+                    <span class="text-xs text-zinc-500 ml-4 code-font">main_program.py</span>
+                </div>
+                <div class="p-6 bg-black/90 code-font text-sm leading-relaxed overflow-x-auto">
+                    <p><span class="text-pink-500 font-bold">def</span> <span class="text-cyan-400">master_logic</span>():</p>
+                    <p class="ml-4 text-zinc-500 italic"># El escudo protector</p>
+                    <p class="ml-4"><span class="text-purple-400">try</span>:</p>
+                    <p class="ml-8 text-zinc-300">n = <span class="text-yellow-400">int</span>(<span class="text-green-400">input</span>())</p>
+                    <p class="ml-8 text-zinc-300">res = 10 / n</p>
+                    <p class="ml-4"><span class="text-purple-400">except</span> <span class="text-pink-400">ZeroDivisionError</span>:</p>
+                    <p class="ml-8 text-cyan-400">print(<span class="text-green-200">"¡Error de física!"</span>)</p>
+                    <p class="ml-4"><span class="text-purple-400">finally</span>:</p>
+                    <p class="ml-8 text-zinc-500">print(<span class="text-zinc-500">"Sistema cerrado."</span>)</p>
+                </div>
+            </div>
+            
+            <button onclick="alert('Simulación: Si n=0, se ejecuta el bloque except. ¡Programa salvado!')" class="w-full mt-4 btn-neon py-3 rounded-xl font-bold uppercase tracking-widest text-sm">
+                Ejecutar Simulación
+            </button>
+        </aside>
+
+        <section class="md:col-span-12 mt-12 mb-20">
+            <div class="card-glass p-8 rounded-3xl border-t-4 border-pink-600">
+                <h2 class="text-3xl font-bold mb-6 text-center">🧠 EXAMEN DE REFUERZO</h2>
+                <div id="quiz-container" class="max-w-2xl mx-auto space-y-6">
+                    <p class="text-xl text-center font-semibold">¿Qué bloque se ejecuta SIEMPRE, ocurra o no un error?</p>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <button onclick="checkAnswer(false)" class="p-4 border border-zinc-700 rounded-xl hover:bg-zinc-800 transition">try</button>
+                        <button onclick="checkAnswer(false)" class="p-4 border border-zinc-700 rounded-xl hover:bg-zinc-800 transition">except</button>
+                        <button onclick="checkAnswer(true)" class="p-4 border border-zinc-700 rounded-xl hover:bg-zinc-800 transition neon-border">finally</button>
+                    </div>
+                    <p id="quiz-feedback" class="text-center h-6 font-bold"></p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="text-center pb-10 text-zinc-600 border-t border-zinc-900 pt-8">
+        <p class="mb-2">Desarrollado para la Robustez del Software - 2026</p>
+        <div class="flex justify-center gap-6 text-xl">
+            <i class="fa-brands fa-python hover:text-cyan-500 cursor-pointer"></i>
+            <i class="fa-solid fa-microchip hover:text-pink-500 cursor-pointer"></i>
+            <i class="fa-solid fa-terminal hover:text-white cursor-pointer"></i>
+        </div>
+    </footer>
+
+    <script>
+        function checkAnswer(isCorrect) {
+            const feedback = document.getElementById('quiz-feedback');
+            if(isCorrect) {
+                feedback.innerText = "¡CORRECTO! El bloque finally es incondicional.";
+                feedback.className = "text-center h-6 font-bold text-cyan-400 animate-bounce";
+            } else {
+                feedback.innerText = "Error detectado... Intenta de nuevo.";
+                feedback.className = "text-center h-6 font-bold text-pink-500";
+            }
+        }
+    </script>
+</body>
+</html>
