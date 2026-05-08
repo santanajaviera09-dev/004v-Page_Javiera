@@ -1,1214 +1,2141 @@
 <!DOCTYPE html>
-<html lang="es" class="dark">
+<html lang="es" class="scroll-smooth">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Algoritmia — Ordenamiento y Consola</title>
-
-  <!-- Tailwind CDN -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Guía HTML — Aprende desde cero</title>
   <script src="https://cdn.tailwindcss.com"></script>
-
-  <!-- Google Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600;700&display=swap" rel="stylesheet"/>
-
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet" />
   <script>
     tailwind.config = {
-      darkMode: 'class',
       theme: {
         extend: {
-          fontFamily: {
-            mono: ['"Share Tech Mono"', 'monospace'],
-            display: ['Orbitron', 'sans-serif'],
-            body: ['Rajdhani', 'sans-serif'],
-          },
           colors: {
             neon: {
-              cyan: '#00f5ff',
-              green: '#39ff14',
-              pink: '#ff2d78',
-              purple: '#bf5fff',
-              yellow: '#ffe600',
+              fuchsia: '#f000ff',
+              purple:  '#b300ff',
+              lilac:   '#d47eff',
+              pink:    '#ff2dce',
+              glow:    '#ff80ff',
             },
             dark: {
-              950: '#020408',
-              900: '#050d14',
-              800: '#091a26',
-              700: '#0d2336',
-              600: '#112c44',
+              900: '#06000d',
+              800: '#0d0020',
+              700: '#140030',
+              600: '#1e0045',
             }
           },
+          fontFamily: {
+            mono:    ['Space Mono', 'monospace'],
+            display: ['Syne', 'sans-serif'],
+          },
           boxShadow: {
-            'neon-cyan': '0 0 10px #00f5ff, 0 0 30px #00f5ff55',
-            'neon-green': '0 0 10px #39ff14, 0 0 30px #39ff1455',
-            'neon-pink': '0 0 10px #ff2d78, 0 0 30px #ff2d7855',
-            'neon-purple': '0 0 10px #bf5fff, 0 0 30px #bf5fff55',
-          }
+            neon:  '0 0 10px #f000ff, 0 0 30px #b300ff44',
+            glow:  '0 0 20px #b300ff88, 0 0 60px #f000ff33',
+            code:  '0 0 15px #9300ff44',
+          },
         }
       }
     }
   </script>
-
   <style>
-    * { box-sizing: border-box; }
-    body {
-      background: #020408;
-      font-family: 'Rajdhani', sans-serif;
-      overflow-x: hidden;
-    }
+    body { background-color: #06000d; font-family: 'Syne', sans-serif; }
 
-    /* Grid background */
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background-image:
-        linear-gradient(rgba(0,245,255,0.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(0,245,255,0.03) 1px, transparent 1px);
-      background-size: 40px 40px;
-      pointer-events: none;
-      z-index: 0;
+    /* ── VIDEO MODAL ── */
+    #video-modal {
+      position: fixed; inset: 0; z-index: 9999;
+      display: flex; align-items: center; justify-content: center;
+      padding: 16px;
+      background: rgba(6,0,13,0.88);
+      backdrop-filter: blur(10px);
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.3s;
     }
+    #video-modal.open { opacity: 1; pointer-events: all; }
 
-    /* Glow pulse */
-    @keyframes glow-pulse {
-      0%, 100% { text-shadow: 0 0 10px #00f5ff, 0 0 30px #00f5ff55; }
-      50% { text-shadow: 0 0 20px #00f5ff, 0 0 60px #00f5ff88, 0 0 80px #00f5ff44; }
+    #modal-box {
+      width: 100%; max-width: 680px;
+      background: linear-gradient(135deg, #140030ee, #06000dee);
+      border: 1px solid #b300ff88;
+      border-radius: 20px;
+      box-shadow: 0 0 60px #b300ff44, 0 0 120px #f000ff22;
+      overflow: hidden;
+      transform: scale(0.93) translateY(20px);
+      transition: transform 0.35s cubic-bezier(.22,.68,0,1.2);
     }
-    @keyframes scanline {
-      0% { transform: translateY(-100%); }
-      100% { transform: translateY(100vh); }
-    }
-    @keyframes fadeInUp {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    @keyframes bar-grow {
-      from { height: 0; }
-      to { height: var(--target-h); }
-    }
-    @keyframes float {
-      0%, 100% { transform: translateY(0px); }
-      50% { transform: translateY(-8px); }
-    }
-    @keyframes blink {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0; }
-    }
-    @keyframes border-glow {
-      0%, 100% { border-color: #00f5ff44; }
-      50% { border-color: #00f5ffaa; }
-    }
+    #video-modal.open #modal-box { transform: scale(1) translateY(0); }
 
-    .glow-title { animation: glow-pulse 3s ease-in-out infinite; }
-    .scanline {
-      position: fixed; top: 0; left: 0; right: 0;
-      height: 2px; background: rgba(0,245,255,0.15);
-      animation: scanline 6s linear infinite;
-      pointer-events: none; z-index: 999;
+    /* top bar */
+    #modal-topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 20px;
+      background: #0d002088;
+      border-bottom: 1px solid #b300ff33;
     }
-    .float-card { animation: float 4s ease-in-out infinite; }
-    .cursor-blink { animation: blink 1s step-end infinite; }
-    .animated-border { animation: border-glow 2s ease-in-out infinite; }
+    #modal-tag { font-family:'Space Mono',monospace; color:#f000ff; font-size:.8rem; text-shadow:0 0 8px #f000ff; }
+    #modal-close {
+      width:32px; height:32px; border-radius:50%;
+      background:#1e004588; border:1px solid #b300ff44; color:#d47eff;
+      cursor:pointer; font-size:1rem; display:flex; align-items:center; justify-content:center;
+      transition: background .2s, border-color .2s;
+    }
+    #modal-close:hover { background:#f000ff22; border-color:#f000ff; color:#f000ff; }
 
-    /* Tab styles */
-    .tab-btn {
-      font-family: 'Orbitron', sans-serif;
-      font-size: 0.65rem;
-      letter-spacing: 0.1em;
-      padding: 0.6rem 1rem;
-      border: 1px solid #00f5ff22;
-      background: transparent;
-      color: #ffffff55;
-      cursor: pointer;
-      transition: all 0.3s ease;
+    /* screen / "video" area */
+    #modal-screen {
       position: relative;
+      background: #000;
+      min-height: 200px;
+      border-bottom: 1px solid #b300ff22;
       overflow: hidden;
     }
-    .tab-btn::before {
-      content: '';
-      position: absolute; bottom: 0; left: 0; right: 0;
-      height: 2px; background: #00f5ff;
-      transform: scaleX(0); transition: transform 0.3s ease;
+    /* scanlines overlay on screen */
+    #modal-screen::after {
+      content:''; position:absolute; inset:0; pointer-events:none;
+      background: repeating-linear-gradient(to bottom, transparent, transparent 3px, rgba(0,0,0,0.12) 3px, rgba(0,0,0,0.12) 4px);
     }
-    .tab-btn:hover { color: #00f5ffaa; border-color: #00f5ff44; }
-    .tab-btn:hover::before { transform: scaleX(0.5); }
-    .tab-btn.active {
-      color: #00f5ff;
-      border-color: #00f5ff66;
-      background: rgba(0,245,255,0.06);
-      box-shadow: 0 0 20px rgba(0,245,255,0.15), inset 0 0 20px rgba(0,245,255,0.04);
+
+    /* typing code area */
+    #modal-code-area {
+      font-family: 'Space Mono', monospace;
+      font-size: .82rem; color: #c87eff;
+      padding: 20px 24px;
+      min-height: 120px;
+      position: relative; z-index: 1;
+      white-space: pre;
     }
-    .tab-btn.active::before { transform: scaleX(1); }
 
-    .tab-panel { display: none; animation: fadeInUp 0.4s ease forwards; }
-    .tab-panel.active { display: block; }
-
-    /* Sort viz */
-    .sort-bar {
-      display: inline-block;
-      width: 28px;
-      margin: 0 2px;
-      transition: height 0.25s ease, background 0.25s ease;
-      border-radius: 3px 3px 0 0;
+    /* preview pane */
+    #modal-preview {
+      background: #fff;
+      padding: 12px 18px;
+      min-height: 60px;
+      font-family: Arial, sans-serif;
+      font-size: 14px;
+      color: #222;
+      border-top: 2px solid #b300ff33;
       position: relative;
     }
-
-    /* Code block */
-    .code-block {
-      background: #091a26;
-      border: 1px solid #00f5ff22;
-      border-radius: 8px;
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 0.8rem;
-      color: #b0e0e6;
-      padding: 1.2rem 1.5rem;
-      overflow-x: auto;
-      position: relative;
-    }
-    .code-block::before {
-      content: '● ● ●';
-      display: block;
-      color: #00f5ff44;
-      margin-bottom: 0.8rem;
-      font-size: 0.7rem;
-    }
-    .kw { color: #00f5ff; }
-    .fn { color: #39ff14; }
-    .str { color: #ffe600; }
-    .cm { color: #ffffff33; font-style: italic; }
-    .num { color: #ff2d78; }
-
-    /* Complexity badge */
-    .complexity-badge {
-      display: inline-block;
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 0.75rem;
-      padding: 0.2rem 0.6rem;
-      border-radius: 4px;
-      border: 1px solid;
+    #modal-preview-label {
+      position: absolute; top: 6px; right: 10px;
+      font-family: 'Space Mono', monospace;
+      font-size: .65rem; color: #b300ff; opacity: .7;
     }
 
-    /* Algorithm card */
-    .algo-card {
-      border: 1px solid #00f5ff22;
-      background: linear-gradient(135deg, #091a2688, #050d1488);
-      border-radius: 10px;
-      padding: 1.2rem 1.5rem;
-      transition: all 0.3s ease;
-      backdrop-filter: blur(10px);
+    /* progress bar */
+    #modal-progress-wrap {
+      height: 3px; background: #1e0045;
     }
-    .algo-card:hover {
-      border-color: #00f5ff55;
-      box-shadow: 0 0 25px rgba(0,245,255,0.1);
-      transform: translateY(-2px);
+    #modal-progress-bar {
+      height: 100%; width: 0%;
+      background: linear-gradient(to right, #f000ff, #b300ff);
+      box-shadow: 0 0 8px #f000ff;
+      transition: width .15s linear;
     }
+
+    /* bottom info */
+    #modal-bottom {
+      padding: 14px 20px;
+      display: flex; align-items: center; gap-10px; gap: 10px;
+    }
+    #modal-title { font-family:'Syne',sans-serif; font-weight:700; color:#fff; font-size:1rem; flex:1; }
+    #modal-timer { font-family:'Space Mono',monospace; color:#b300ff; font-size:.78rem; }
+
+    /* explanation text */
+    #modal-explanation {
+      padding: 0 20px 16px;
+      font-size: .85rem; color: #b0a0c8; line-height:1.65;
+    }
+
+    /* loading spinner */
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spinner {
+      width:28px; height:28px;
+      border: 3px solid #b300ff33;
+      border-top-color: #f000ff;
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+    }
+
+    /* cursor blink */
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+    .cursor { display:inline-block; width:2px; height:1em; background:#f000ff; vertical-align:text-bottom; animation: blink .8s infinite; margin-left:1px; }
+
+    /* card clickable hint */
+    .card-neon { cursor: pointer; position: relative; }
+    .card-neon::before {
+      content: '▶ Ver demo';
+      position: absolute; top:10px; right:12px;
+      font-family:'Space Mono',monospace; font-size:.65rem;
+      color:#f000ff99; opacity:0;
+      transition: opacity .2s;
+      pointer-events: none;
+    }
+    .card-neon:hover::before { opacity:1; }
+
+    /* ── YOUTUBE BUTTON LINK ── */
+    .yt-btn {
+      display: flex; align-items: center; gap: 16px;
+      padding: 14px 20px; border-radius: 14px;
+      background: #0d0020;
+      border: 1px solid #b300ff44;
+      text-decoration: none;
+      transition: border-color .25s, background .25s, box-shadow .25s;
+      cursor: pointer;
+    }
+    .yt-btn:hover {
+      border-color: #ff0000aa;
+      background: #1a000a;
+      box-shadow: 0 0 20px #ff000033;
+    }
+    .yt-btn-icon {
+      width: 44px; height: 44px; border-radius: 50%; flex-shrink: 0;
+      background: #ff0000; color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: .9rem; font-weight: 700;
+      box-shadow: 0 0 12px #ff000066;
+      transition: box-shadow .25s, transform .25s;
+    }
+    .yt-btn:hover .yt-btn-icon {
+      box-shadow: 0 0 22px #ff0000cc;
+      transform: scale(1.1);
+    }
+    .yt-btn-info {
+      display: flex; flex-direction: column; gap: 3px; flex: 1; min-width: 0;
+    }
+    .yt-btn-label {
+      font-family: 'Space Mono', monospace;
+      font-size: .65rem; color: #ff4444; letter-spacing: .08em;
+    }
+    .yt-btn-title {
+      font-family: 'Syne', sans-serif; font-weight: 700;
+      font-size: .9rem; color: #e0d0f0;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .yt-btn-arrow {
+      font-size: 1.2rem; color: #b300ff44;
+      transition: color .25s, transform .25s;
+      flex-shrink: 0;
+    }
+    .yt-btn:hover .yt-btn-arrow { color: #ff0000; transform: translate(3px,-3px); }
 
     /* Scrollbar */
-    ::-webkit-scrollbar { width: 4px; height: 4px; }
-    ::-webkit-scrollbar-track { background: #020408; }
-    ::-webkit-scrollbar-thumb { background: #00f5ff44; border-radius: 2px; }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #0d0020; }
+    ::-webkit-scrollbar-thumb { background: #b300ff; border-radius: 3px; }
 
-    /* Neon text utilities */
-    .text-neon-cyan { color: #00f5ff; }
-    .text-neon-green { color: #39ff14; }
-    .text-neon-pink { color: #ff2d78; }
-    .text-neon-purple { color: #bf5fff; }
-    .text-neon-yellow { color: #ffe600; }
+    /* Neon text glow */
+    .text-glow-fuchsia { text-shadow: 0 0 12px #f000ff, 0 0 30px #b300ff66; }
+    .text-glow-purple  { text-shadow: 0 0 10px #b300ff, 0 0 20px #b300ff55; }
+    .text-glow-white   { text-shadow: 0 0 8px #ffffff66; }
 
-    .border-neon-cyan { border-color: #00f5ff44; }
+    /* Gradient border card */
+    .card-neon {
+      background: linear-gradient(135deg, #140030cc, #06000ddd);
+      border: 1px solid #b300ff44;
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+    .card-neon:hover {
+      border-color: #f000ff;
+      box-shadow: 0 0 20px #f000ff44, 0 0 50px #b300ff22;
+    }
 
-    /* Step highlight */
-    .step-highlight { background: rgba(0,245,255,0.15) !important; box-shadow: 0 0 15px #00f5ff88 !important; }
-    .step-compare { background: rgba(255,45,120,0.7) !important; box-shadow: 0 0 15px #ff2d78 !important; }
-    .step-sorted { background: rgba(57,255,20,0.7) !important; box-shadow: 0 0 15px #39ff14 !important; }
+    /* Code blocks */
+    pre {
+      background: #000000;
+      border: 1px solid #6600cc55;
+      border-left: 3px solid #b300ff;
+      box-shadow: 0 0 15px #9300ff22;
+      overflow-x: auto;
+    }
+    code {
+      font-family: 'Space Mono', monospace;
+      color: #c87eff;
+      font-size: 0.85rem;
+      line-height: 1.7;
+    }
 
-    /* Progress bar */
-    .progress-fill {
-      height: 100%;
-      transition: width 0.4s ease;
+    /* Tag badge */
+    .tag-badge {
+      font-family: 'Space Mono', monospace;
+      background: #1e0045;
+      border: 1px solid #b300ff66;
+      color: #d47eff;
+      padding: 2px 10px;
       border-radius: 4px;
+      font-size: 0.78rem;
     }
 
-    /* Mobile tap */
-    @media (max-width: 640px) {
-      .tab-btn { padding: 0.5rem 0.6rem; font-size: 0.55rem; }
+    /* Section headings */
+    .section-title {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
     }
 
-    .tag-pill {
-      display: inline-flex; align-items: center; gap: 4px;
-      padding: 2px 10px; border-radius: 999px;
-      font-family: 'Share Tech Mono', monospace; font-size: 0.7rem;
-      border: 1px solid;
+    /* Nav sticky */
+    nav { backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
+
+    /* Gradient bg for hero */
+    .hero-bg {
+      background: radial-gradient(ellipse 80% 60% at 50% 0%, #3a006688 0%, transparent 70%),
+                  radial-gradient(ellipse 50% 40% at 80% 50%, #8000cc33 0%, transparent 60%),
+                  #06000d;
+    }
+
+    /* Grid lines overlay */
+    .grid-bg {
+      background-image:
+        linear-gradient(rgba(179,0,255,0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(179,0,255,0.05) 1px, transparent 1px);
+      background-size: 40px 40px;
+    }
+
+    /* Step number */
+    .step-num {
+      font-family: 'Space Mono', monospace;
+      color: #f000ff;
+      font-size: 2rem;
+      font-weight: 700;
+      text-shadow: 0 0 15px #f000ff;
+      line-height: 1;
+    }
+
+    /* Pill badge */
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 14px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      font-family: 'Space Mono', monospace;
+    }
+    .pill-green  { background: #002200; border: 1px solid #00ff6644; color: #00ff88; }
+    .pill-yellow { background: #1a1100; border: 1px solid #ffcc0044; color: #ffcc00; }
+    .pill-red    { background: #1a0000; border: 1px solid #ff004444; color: #ff6666; }
+
+    /* Route step */
+    .route-step {
+      position: relative;
+      padding-left: 2.5rem;
+    }
+    .route-step::before {
+      content: '';
+      position: absolute;
+      left: 10px;
+      top: 28px;
+      bottom: -28px;
+      width: 2px;
+      background: linear-gradient(to bottom, #b300ff, transparent);
+    }
+    .route-step:last-child::before { display: none; }
+
+    /* Hover scale */
+    .hover-scale { transition: transform 0.2s; }
+    .hover-scale:hover { transform: scale(1.02); }
+
+    /* Pulse dot */
+    @keyframes pulse-neon {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+    .pulse-dot {
+      width: 8px; height: 8px;
+      background: #f000ff;
+      border-radius: 50%;
+      animation: pulse-neon 1.6s infinite;
+      box-shadow: 0 0 8px #f000ff;
+    }
+
+    /* Animate fade-in */
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .fade-in { animation: fadeInUp 0.7s ease both; }
+    .delay-1 { animation-delay: 0.15s; }
+    .delay-2 { animation-delay: 0.3s; }
+    .delay-3 { animation-delay: 0.45s; }
+
+    /* Scanline effect hero */
+    .scanlines {
+      background: repeating-linear-gradient(
+        to bottom,
+        transparent, transparent 3px,
+        rgba(0,0,0,0.08) 3px, rgba(0,0,0,0.08) 4px
+      );
+      pointer-events: none;
+    }
+
+    /* Active nav */
+    .nav-link {
+      color: #a0a0c0;
+      transition: color 0.2s;
+      font-size: 0.82rem;
+      font-family: 'Space Mono', monospace;
+    }
+    .nav-link:hover { color: #f000ff; text-shadow: 0 0 8px #f000ff; }
+
+    /* Nav links that open YouTube */
+    .nav-yt::after {
+      content: ' ▶';
+      font-size: .5rem;
+      color: #ff444488;
+      vertical-align: middle;
+    }
+    .nav-yt:hover { color: #ff4444 !important; text-shadow: 0 0 8px #ff444488 !important; }
+
+    /* Error badge */
+    .error-item {
+      border-left: 3px solid #ff0040;
+      background: #1a000a;
+      padding: 10px 16px;
+      border-radius: 0 8px 8px 0;
+    }
+
+    /* Check item */
+    .check-item {
+      border-left: 3px solid #00ff88;
+      background: #001a0a;
+      padding: 10px 16px;
+      border-radius: 0 8px 8px 0;
     }
   </style>
 </head>
-<body class="min-h-screen text-white relative">
+<body class="text-gray-200 min-h-screen">
 
-  <div class="scanline"></div>
-
-  <!-- HEADER -->
-  <header class="relative z-10 text-center py-12 px-4">
-    <div class="inline-block mb-3">
-      <span class="tag-pill border-neon-cyan text-neon-cyan" style="border-color:#00f5ff55">
-        <span>⬡</span> CS · FUNDAMENTOS
-      </span>
-    </div>
-    <h1 class="font-display text-4xl md:text-6xl font-black tracking-widest glow-title text-neon-cyan uppercase mb-3">
-      Algoritmia
-    </h1>
-    <p class="font-body text-lg md:text-xl text-white/50 tracking-widest uppercase">
-      Ordenamiento · Consola · Complejidad
-    </p>
-    <div class="mt-6 flex justify-center gap-4 flex-wrap">
-      <span class="tag-pill" style="border-color:#39ff1455; color:#39ff14">● Python</span>
-      <span class="tag-pill" style="border-color:#ff2d7855; color:#ff2d78">● Interactivo</span>
-      <span class="tag-pill" style="border-color:#bf5fff55; color:#bf5fff">● Animado</span>
-    </div>
-  </header>
-
-  <!-- TABS NAV -->
-  <nav class="sticky top-0 z-50 bg-dark-950/90 backdrop-blur-md border-b border-neon-cyan/10 py-2 px-4">
-    <div class="max-w-5xl mx-auto flex gap-1 overflow-x-auto no-scrollbar">
-      <button class="tab-btn active" onclick="switchTab('intro')">⬡ Intro</button>
-      <button class="tab-btn" onclick="switchTab('consola')">⌨ Consola</button>
-      <button class="tab-btn" onclick="switchTab('algoritmos')">⬡ Algoritmos</button>
-      <button class="tab-btn" onclick="switchTab('visualizer')">▶ Visualizer</button>
-      <button class="tab-btn" onclick="switchTab('complejidad')">∑ Complejidad</button>
-      <button class="tab-btn" onclick="switchTab('codigo')">⟨/⟩ Código</button>
-      <button class="tab-btn" onclick="switchTab('recursos')">★ Recursos</button>
+  <!-- NAVBAR -->
+  <nav class="fixed top-0 left-0 right-0 z-50 bg-dark-900/80 border-b border-neon-purple/20">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <div class="pulse-dot"></div>
+        <span class="font-display font-800 text-neon-lilac text-lg tracking-wide text-glow-purple">&lt;HTML/&gt;</span>
+      </div>
+      <div class="hidden md:flex items-center gap-5">
+        <a href="https://www.youtube.com/watch?v=rbuYtrNUxg4" target="_blank" class="nav-link nav-yt" title="Ver video en YouTube">¿Qué es?</a>
+        <a href="https://www.youtube.com/watch?v=MJkdaVFHrto" target="_blank" class="nav-link nav-yt" title="Ver video en YouTube">Uso</a>
+        <a href="https://www.youtube.com/watch?v=mwtkPVR9MgU" target="_blank" class="nav-link nav-yt" title="Ver video en YouTube">Etiquetas</a>
+        <a href="https://www.youtube.com/watch?v=ELSm-G201Ls" target="_blank" class="nav-link nav-yt" title="Ver video en YouTube">Cursos</a>
+        <a href="https://www.youtube.com/watch?v=CvfB4KzP4us" target="_blank" class="nav-link nav-yt" title="Ver video en YouTube">Ruta</a>
+        <a onclick="openGamesPanel()" class="nav-link" style="cursor:pointer;color:#f000ff;text-shadow:0 0 8px #f000ff99;border:1px solid #f000ff44;padding:4px 12px;border-radius:6px;transition:all .2s;" onmouseover="this.style.background='#f000ff22'" onmouseout="this.style.background='transparent'">🎮 Juegos</a>
+      </div>
+      <span class="tag-badge">v3.0</span>
     </div>
   </nav>
 
-  <!-- MAIN CONTENT -->
-  <main class="relative z-10 max-w-5xl mx-auto px-4 py-10">
+  <!-- HERO -->
+  <header class="hero-bg grid-bg relative pt-32 pb-24 px-4 overflow-hidden">
+    <div class="scanlines absolute inset-0"></div>
+    <div class="max-w-4xl mx-auto relative z-10 text-center">
+      <div class="fade-in inline-flex items-center gap-2 pill mb-6" style="background:#1e0045;border:1px solid #f000ff44;color:#f000ff;">
+        <span>🚀</span> Guía completa para principiantes
+      </div>
+      <h1 class="fade-in delay-1 section-title text-5xl md:text-7xl mb-6 leading-tight">
+        <span class="text-white text-glow-white">Aprende</span><br/>
+        <span class="text-neon-fuchsia text-glow-fuchsia">HTML</span>
+        <span class="text-neon-lilac"> desde</span><br/>
+        <span class="text-white text-glow-white">cero</span>
+      </h1>
+      <p class="fade-in delay-2 text-gray-400 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed mb-10">
+        El lenguaje que estructura <span class="text-neon-lilac">toda la web</span>. Aprende a usarlo, entiende su lógica y construye tu primera página real.
+      </p>
+      <div class="fade-in delay-3 flex flex-wrap justify-center gap-4">
+        <a href="#etiquetas" class="px-6 py-3 rounded-lg font-display font-700 text-black" style="background: linear-gradient(135deg, #f000ff, #b300ff); box-shadow: 0 0 20px #f000ff66;">
+          Ver etiquetas →
+        </a>
+        <a href="#ejercicios" class="px-6 py-3 rounded-lg font-display font-700 text-neon-lilac border border-neon-purple/40 hover:border-neon-fuchsia transition-colors">
+          Practicar ahora
+        </a>
+      </div>
+    </div>
+  </header>
 
-    <!-- ═══════════ TAB: INTRO ═══════════ -->
-    <div id="tab-intro" class="tab-panel active">
-      <div class="grid md:grid-cols-2 gap-6 mb-8">
-        <!-- Qué es -->
-        <div class="algo-card float-card">
-          <div class="flex items-center gap-3 mb-4">
-            <span class="text-3xl">⬡</span>
-            <h2 class="font-display text-lg text-neon-cyan tracking-widest">¿Qué es la Algoritmia?</h2>
-          </div>
-          <p class="text-white/70 leading-relaxed font-body text-base">
-            La algoritmia es el <span class="text-neon-cyan font-semibold">estudio y diseño de algoritmos</span> —
-            conjuntos de pasos ordenados y finitos que permiten <span class="text-neon-green">resolver un problema</span>
-            de forma lógica y eficiente.
-          </p>
+  <main class="max-w-5xl mx-auto px-4 py-16 space-y-24">
+
+    <!-- ¿QUÉ ES HTML? -->
+    <section id="que-es">
+      <div class="flex items-center gap-3 mb-6">
+        <span class="text-3xl">💡</span>
+        <h2 class="section-title text-3xl md:text-4xl text-white text-glow-white">¿Qué es HTML?</h2>
+      </div>
+
+      <!-- VIDEO ¿Qué es HTML? — Fazt -->
+      <a href="https://www.youtube.com/watch?v=rbuYtrNUxg4" target="_blank" class="yt-btn mb-8">
+        <div class="yt-btn-icon">▶</div>
+        <div class="yt-btn-info">
+          <span class="yt-btn-label">VIDEO RECOMENDADO · Fazt</span>
+          <span class="yt-btn-title">Curso HTML para Principiantes — qué es, cómo funciona y primeros pasos</span>
         </div>
+        <div class="yt-btn-arrow">↗</div>
+      </a>
 
-        <!-- Características -->
-        <div class="algo-card">
-          <div class="flex items-center gap-3 mb-4">
-            <span class="text-3xl">◈</span>
-            <h2 class="font-display text-lg text-neon-purple tracking-widest">Características</h2>
-          </div>
-          <ul class="space-y-2">
-            <li class="flex items-center gap-3 text-white/70 font-body text-base">
-              <span class="text-neon-cyan font-mono text-xs w-20 shrink-0">FINITO</span>
-              <span>Termina en algún momento</span>
+      <div class="card-neon rounded-2xl p-8 mb-8" data-topic="que-es-html" data-label="¿Qué es HTML?">
+        <p class="text-xl text-gray-300 leading-relaxed mb-4">
+          <span class="text-neon-fuchsia text-glow-fuchsia font-700">HTML</span>
+          <span class="text-neon-lilac font-mono text-sm"> (HyperText Markup Language)</span> es un
+          <span class="text-white font-700">lenguaje de marcado</span> que sirve para
+          <span class="text-neon-fuchsia">estructurar contenido</span> en la web.
+        </p>
+        <p class="text-gray-400">👉 No programa lógica — solo <span class="text-neon-lilac">organiza</span> lo que ves en pantalla.</p>
+      </div>
+
+      <div class="grid md:grid-cols-2 gap-6">
+        <div class="card-neon rounded-2xl p-6 hover-scale" data-topic="html-organiza" data-label="HTML organiza contenido">
+          <h3 class="font-display font-700 text-neon-lilac mb-4 text-lg">📦 HTML organiza</h3>
+          <ul class="space-y-2 text-gray-300">
+            <li class="flex items-center gap-2"><span class="text-neon-fuchsia">▸</span> Texto</li>
+            <li class="flex items-center gap-2"><span class="text-neon-fuchsia">▸</span> Imágenes</li>
+            <li class="flex items-center gap-2"><span class="text-neon-fuchsia">▸</span> Botones</li>
+            <li class="flex items-center gap-2"><span class="text-neon-fuchsia">▸</span> Formularios</li>
+          </ul>
+        </div>
+        <div class="card-neon rounded-2xl p-6 hover-scale" data-topic="html-css-js" data-label="HTML + CSS + JavaScript">
+          <h3 class="font-display font-700 text-neon-lilac mb-4 text-lg">🤝 Trabaja junto a</h3>
+          <ul class="space-y-3 text-gray-300">
+            <li class="flex items-center gap-3">
+              <span class="tag-badge">CSS</span>
+              <span class="text-gray-400">→ diseño visual</span>
             </li>
-            <li class="flex items-center gap-3 text-white/70 font-body text-base">
-              <span class="text-neon-pink font-mono text-xs w-20 shrink-0">DEFINIDO</span>
-              <span>Cada paso es claro y preciso</span>
-            </li>
-            <li class="flex items-center gap-3 text-white/70 font-body text-base">
-              <span class="text-neon-green font-mono text-xs w-20 shrink-0">ENTRADA</span>
-              <span>Recibe datos como input</span>
-            </li>
-            <li class="flex items-center gap-3 text-white/70 font-body text-base">
-              <span class="text-neon-yellow font-mono text-xs w-20 shrink-0">SALIDA</span>
-              <span>Produce resultados</span>
-            </li>
-            <li class="flex items-center gap-3 text-white/70 font-body text-base">
-              <span class="text-neon-purple font-mono text-xs w-20 shrink-0">EFICIENTE</span>
-              <span>Usa bien tiempo y memoria</span>
+            <li class="flex items-center gap-3">
+              <span class="tag-badge">JS</span>
+              <span class="text-gray-400">→ interactividad</span>
             </li>
           </ul>
         </div>
       </div>
+    </section>
 
-      <!-- Pseudocódigo intro -->
-      <div class="algo-card mb-6">
-        <h2 class="font-display text-sm text-neon-yellow tracking-widest mb-4">⟨/⟩ EJEMPLO EN PSEUDOCÓDIGO</h2>
-        <div class="code-block">
-          <span class="cm"># Algoritmo simple</span><br>
-          <span class="kw">leer</span> número<br>
-          <span class="kw">mostrar</span> número <span class="fn">*</span> <span class="num">2</span>
-        </div>
+    <!-- ¿CÓMO SE USA? -->
+    <section id="uso">
+      <div class="flex items-center gap-3 mb-6">
+        <span class="text-3xl">⚙️</span>
+        <h2 class="section-title text-3xl md:text-4xl text-white">¿Cómo se usa HTML?</h2>
       </div>
 
-      <!-- Aplicaciones reales -->
-      <div class="algo-card">
-        <h2 class="font-display text-sm text-neon-pink tracking-widest mb-4">🌐 APLICACIONES REALES</h2>
-        <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
-          <div class="text-center p-3 rounded-lg border border-neon-cyan/20 bg-neon-cyan/5 hover:bg-neon-cyan/10 transition-all cursor-default">
-            <div class="text-2xl mb-1">🗄️</div>
-            <div class="text-white/60 font-body text-xs">Bases de datos</div>
-          </div>
-          <div class="text-center p-3 rounded-lg border border-neon-green/20 bg-neon-green/5 hover:bg-neon-green/10 transition-all cursor-default">
-            <div class="text-2xl mb-1">🔍</div>
-            <div class="text-white/60 font-body text-xs">Buscadores</div>
-          </div>
-          <div class="text-center p-3 rounded-lg border border-neon-purple/20 bg-neon-purple/5 hover:bg-neon-purple/10 transition-all cursor-default">
-            <div class="text-2xl mb-1">🎯</div>
-            <div class="text-white/60 font-body text-xs">Recomendación</div>
-          </div>
-          <div class="text-center p-3 rounded-lg border border-neon-pink/20 bg-neon-pink/5 hover:bg-neon-pink/10 transition-all cursor-default">
-            <div class="text-2xl mb-1">🎮</div>
-            <div class="text-white/60 font-body text-xs">Videojuegos</div>
-          </div>
-          <div class="text-center p-3 rounded-lg border border-neon-yellow/20 bg-neon-yellow/5 hover:bg-neon-yellow/10 transition-all cursor-default">
-            <div class="text-2xl mb-1">🤖</div>
-            <div class="text-white/60 font-body text-xs">IA</div>
-          </div>
+      <!-- VIDEO Cómo se usa HTML — HolaMundo -->
+      <a href="https://www.youtube.com/watch?v=MJkdaVFHrto" target="_blank" class="yt-btn mb-8">
+        <div class="yt-btn-icon">▶</div>
+        <div class="yt-btn-info">
+          <span class="yt-btn-label">VIDEO RECOMENDADO · HolaMundo</span>
+          <span class="yt-btn-title">Aprende HTML ahora — para qué sirve y cómo escribir tu primer archivo</span>
         </div>
-      </div>
-    </div>
+        <div class="yt-btn-arrow">↗</div>
+      </a>
 
-    <!-- ═══════════ TAB: CONSOLA ═══════════ -->
-    <div id="tab-consola" class="tab-panel">
-      <div class="algo-card mb-6">
-        <div class="flex items-center gap-3 mb-4">
-          <span class="text-3xl">⌨</span>
-          <h2 class="font-display text-lg text-neon-cyan tracking-widest">¿Qué significa "en consola"?</h2>
+      <div class="space-y-8">
+
+        <!-- Paso 1 -->
+        <div class="card-neon rounded-2xl p-6 hover-scale" data-topic="crear-archivo-html" data-label="Paso 01 — Crear archivo HTML">
+          <div class="flex items-start gap-5">
+            <span class="step-num">01</span>
+            <div class="flex-1">
+              <h3 class="font-display font-700 text-neon-lilac text-lg mb-2">Crear archivo</h3>
+              <p class="text-gray-400 text-sm mb-3">Los archivos HTML se guardan con la extensión <code>.html</code>. El nombre <code>index.html</code> es especial: los servidores web lo cargan automáticamente cuando alguien visita tu dominio. Es la "puerta de entrada" de toda web.</p>
+              <pre class="rounded-lg p-4"><code>index.html</code></pre>
+            </div>
+          </div>
         </div>
-        <p class="text-white/70 leading-relaxed font-body text-base mb-4">
-          Trabajar <span class="text-neon-green font-semibold">"en consola"</span> significa ejecutar programas que interactúan
-          con el usuario mediante <span class="text-neon-cyan">texto puro</span>, sin ninguna interfaz gráfica.
-          Se usan la entrada y salida estándar del sistema operativo.
+
+        <!-- Paso 2 -->
+        <div class="card-neon rounded-2xl p-6 hover-scale" data-topic="estructura-base-html" data-label="Paso 02 — Estructura base HTML">
+          <div class="flex items-start gap-5">
+            <span class="step-num">02</span>
+            <div class="flex-1">
+              <h3 class="font-display font-700 text-neon-lilac text-lg mb-2">Escribir estructura base</h3>
+              <p class="text-gray-400 text-sm mb-3">Todo documento HTML parte de este esqueleto. <code>&lt;!DOCTYPE html&gt;</code> le dice al navegador que use HTML5. <code>&lt;head&gt;</code> contiene configuración invisible (título, codificación, CSS). <code>&lt;body&gt;</code> contiene todo lo que el usuario verá en pantalla.</p>
+              <pre class="rounded-lg p-4"><code>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+  &lt;head&gt;
+    &lt;meta charset="UTF-8"&gt;
+    &lt;title&gt;Mi web&lt;/title&gt;
+  &lt;/head&gt;
+  &lt;body&gt;
+    &lt;h1&gt;Hola&lt;/h1&gt;
+  &lt;/body&gt;
+&lt;/html&gt;</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- Paso 3 -->
+        <div class="card-neon rounded-2xl p-6 hover-scale" data-topic="abrir-navegador" data-label="Paso 03 — Abrir en navegador">
+          <div class="flex items-start gap-5">
+            <span class="step-num">03</span>
+            <div class="flex-1">
+              <h3 class="font-display font-700 text-neon-lilac text-lg mb-2">Abrir en el navegador</h3>
+              <p class="text-gray-400 text-sm mb-2">No necesitas un servidor para ver tu trabajo. El navegador puede abrir archivos directamente desde tu computadora. Cada vez que guardes cambios en tu editor, recarga la página para verlos.</p>
+              <div class="flex flex-wrap gap-2 mt-3">
+                <span class="tag-badge">Doble clic en el archivo</span>
+                <span class="text-gray-600">o</span>
+                <span class="tag-badge">Arrastrar al navegador</span>
+                <span class="text-gray-600">o</span>
+                <span class="tag-badge">Ctrl + O en el navegador</span>
+              </div>
+              <p class="text-green-400 text-sm mt-3">✅ ¡Ver el resultado en segundos — sin instalar nada!</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ETIQUETAS ESENCIALES -->
+    <section id="etiquetas">
+      <div class="flex items-center gap-3 mb-2">
+        <span class="text-3xl">🧱</span>
+        <h2 class="section-title text-3xl md:text-4xl text-white">Etiquetas esenciales</h2>
+      </div>
+
+      <!-- VIDEO Etiquetas HTML — DropCoding -->
+      <a href="https://www.youtube.com/watch?v=mwtkPVR9MgU" target="_blank" class="yt-btn mb-6">
+        <div class="yt-btn-icon">▶</div>
+        <div class="yt-btn-info">
+          <span class="yt-btn-label">VIDEO RECOMENDADO · DropCoding</span>
+          <span class="yt-btn-title">Etiquetas en HTML — qué son, cómo se usan y ejemplos prácticos</span>
+        </div>
+        <div class="yt-btn-arrow">↗</div>
+      </a>
+      <div class="h-1 w-32 rounded mb-10" style="background: linear-gradient(to right, #f000ff, #b300ff44);"></div>
+
+      <div class="grid md:grid-cols-2 gap-6">
+
+        <!-- Títulos -->
+        <div class="card-neon rounded-2xl p-6 hover-scale" data-topic="etiqueta-titulos" data-label="Etiqueta &lt;h1&gt; — Títulos">
+          <div class="flex items-center gap-2 mb-3">
+            <span class="text-xl">🔹</span>
+            <h3 class="font-display font-700 text-neon-fuchsia text-glow-fuchsia">Títulos</h3>
+          </div>
+          <p class="text-gray-400 text-sm leading-relaxed mb-3">
+            Definen la <span class="text-neon-lilac">jerarquía del texto</span>. Van del <code>&lt;h1&gt;</code> (más importante) al <code>&lt;h6&gt;</code> (menos importante). El navegador los muestra en diferentes tamaños automáticamente, y los buscadores como Google los usan para entender de qué trata tu página.
+          </p>
+          <pre class="rounded-lg p-4 mb-3"><code>&lt;h1&gt;Mi Blog de Viajes&lt;/h1&gt;
+&lt;h2&gt;Mi viaje a Japón&lt;/h2&gt;
+&lt;h3&gt;Día 1: Tokio&lt;/h3&gt;</code></pre>
+          <p class="text-yellow-400 text-sm">👉 Usa solo un <code>&lt;h1&gt;</code> por página — es el título principal</p>
+        </div>
+
+        <!-- Párrafos -->
+        <div class="card-neon rounded-2xl p-6 hover-scale" data-topic="etiqueta-parrafos" data-label="Etiqueta &lt;p&gt; — Párrafos">
+          <div class="flex items-center gap-2 mb-3">
+            <span class="text-xl">🔹</span>
+            <h3 class="font-display font-700 text-neon-fuchsia text-glow-fuchsia">Párrafos</h3>
+          </div>
+          <p class="text-gray-400 text-sm leading-relaxed mb-3">
+            Sirve para mostrar <span class="text-neon-lilac">bloques de texto</span> en la página. El navegador agrega automáticamente un espacio arriba y abajo de cada párrafo para separarlo visualmente del resto del contenido.
+          </p>
+          <pre class="rounded-lg p-4 mb-3"><code>&lt;p&gt;Bienvenido a mi sitio web.&lt;/p&gt;
+&lt;p&gt;Aquí encontrarás tutoriales
+   de programación.&lt;/p&gt;</code></pre>
+          <p class="text-gray-500 text-xs">💡 Cada <code>&lt;p&gt;</code> inicia en una línea nueva automáticamente</p>
+        </div>
+
+        <!-- Enlaces -->
+        <div class="card-neon rounded-2xl p-6 hover-scale" data-topic="etiqueta-enlaces" data-label="Etiqueta &lt;a&gt; — Enlaces">
+          <div class="flex items-center gap-2 mb-3">
+            <span class="text-xl">🔹</span>
+            <h3 class="font-display font-700 text-neon-fuchsia text-glow-fuchsia">Enlaces</h3>
+          </div>
+          <p class="text-gray-400 text-sm leading-relaxed mb-3">
+            Crea <span class="text-neon-lilac">hipervínculos</span> — texto o imágenes en los que el usuario puede hacer clic para navegar a otra página, sitio web o sección. El atributo <code>href</code> indica a dónde va el enlace. Con <code>target="_blank"</code> se abre en una pestaña nueva sin cerrar la actual.
+          </p>
+          <pre class="rounded-lg p-4 mb-3"><code>&lt;!-- Enlace simple --&gt;
+&lt;a href="https://google.com"&gt;
+  Ir a Google
+&lt;/a&gt;
+
+&lt;!-- Abre en pestaña nueva --&gt;
+&lt;a href="https://youtube.com"
+   target="_blank"&gt;Ver YouTube&lt;/a&gt;
+
+&lt;!-- Enlace a otra sección --&gt;
+&lt;a href="#contacto"&gt;Ir a Contacto&lt;/a&gt;</code></pre>
+        </div>
+
+        <!-- Imágenes -->
+        <div class="card-neon rounded-2xl p-6 hover-scale" data-topic="etiqueta-imagenes" data-label="Etiqueta &lt;img&gt; — Imágenes">
+          <div class="flex items-center gap-2 mb-3">
+            <span class="text-xl">🔹</span>
+            <h3 class="font-display font-700 text-neon-fuchsia text-glow-fuchsia">Imágenes</h3>
+          </div>
+          <p class="text-gray-400 text-sm leading-relaxed mb-3">
+            Incrusta una imagen en la página. Es una etiqueta <span class="text-neon-lilac">vacía</span> (no necesita cierre). <code>src</code> indica la ruta del archivo — puede ser local o una URL. <code>alt</code> es el texto que aparece si la imagen no carga, y lo usan los lectores de pantalla para personas con discapacidad visual.
+          </p>
+          <pre class="rounded-lg p-4 mb-3"><code>&lt;!-- Imagen local --&gt;
+&lt;img src="foto.jpg"
+     alt="Mi foto de perfil"&gt;
+
+&lt;!-- Imagen desde internet --&gt;
+&lt;img src="https://picsum.photos/300"
+     alt="Imagen aleatoria"
+     width="300"&gt;</code></pre>
+          <p class="text-yellow-400 text-sm">👉 <code>alt</code> es obligatorio — mejora accesibilidad y SEO</p>
+        </div>
+
+        <!-- Listas -->
+        <div class="card-neon rounded-2xl p-6 hover-scale" data-topic="etiqueta-listas" data-label="Etiquetas &lt;ul&gt; &lt;ol&gt; — Listas">
+          <div class="flex items-center gap-2 mb-3">
+            <span class="text-xl">🔹</span>
+            <h3 class="font-display font-700 text-neon-fuchsia text-glow-fuchsia">Listas</h3>
+          </div>
+          <p class="text-gray-400 text-sm leading-relaxed mb-3">
+            Agrupan elementos relacionados. <code>&lt;ul&gt;</code> muestra viñetas (•) cuando el <span class="text-neon-lilac">orden no importa</span>. <code>&lt;ol&gt;</code> numera automáticamente (1, 2, 3…) cuando el <span class="text-neon-lilac">orden sí importa</span>. Cada elemento va dentro de un <code>&lt;li&gt;</code>.
+          </p>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <p class="text-gray-500 text-xs mb-2 font-mono">Con puntos • sin orden</p>
+              <pre class="rounded-lg p-3"><code>&lt;ul&gt;
+  &lt;li&gt;Pizza&lt;/li&gt;
+  &lt;li&gt;Sushi&lt;/li&gt;
+  &lt;li&gt;Tacos&lt;/li&gt;
+&lt;/ul&gt;</code></pre>
+            </div>
+            <div>
+              <p class="text-gray-500 text-xs mb-2 font-mono">Numerada • con orden</p>
+              <pre class="rounded-lg p-3"><code>&lt;ol&gt;
+  &lt;li&gt;Instalar VS Code&lt;/li&gt;
+  &lt;li&gt;Crear archivo&lt;/li&gt;
+  &lt;li&gt;Escribir HTML&lt;/li&gt;
+&lt;/ol&gt;</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- Botones -->
+        <div class="card-neon rounded-2xl p-6 hover-scale" data-topic="etiqueta-botones" data-label="Etiqueta &lt;button&gt; — Botones">
+          <div class="flex items-center gap-2 mb-3">
+            <span class="text-xl">🔹</span>
+            <h3 class="font-display font-700 text-neon-fuchsia text-glow-fuchsia">Botones</h3>
+          </div>
+          <p class="text-gray-400 text-sm leading-relaxed mb-3">
+            Crea un elemento <span class="text-neon-lilac">interactivo</span> en el que el usuario puede hacer clic. Solo muestra el botón — para que haga algo necesita JavaScript. Dentro de formularios, el tipo <code>submit</code> envía los datos automáticamente.
+          </p>
+          <pre class="rounded-lg p-4 mb-3"><code>&lt;!-- Botón básico --&gt;
+&lt;button&gt;Haz clic aquí&lt;/button&gt;
+
+&lt;!-- Botón que envía formulario --&gt;
+&lt;button type="submit"&gt;Enviar&lt;/button&gt;
+
+&lt;!-- Botón con acción JS --&gt;
+&lt;button onclick="alert('¡Hola!')"&gt;
+  Saludar
+&lt;/button&gt;</code></pre>
+        </div>
+
+        <!-- Formularios -->
+        <div class="card-neon rounded-2xl p-6 hover-scale" data-topic="etiqueta-formularios" data-label="Etiqueta &lt;form&gt; — Formularios">
+          <div class="flex items-center gap-2 mb-3">
+            <span class="text-xl">🔹</span>
+            <h3 class="font-display font-700 text-neon-fuchsia text-glow-fuchsia">Formularios</h3>
+          </div>
+          <p class="text-gray-400 text-sm leading-relaxed mb-3">
+            Permite al usuario <span class="text-neon-lilac">ingresar y enviar datos</span>. El <code>&lt;form&gt;</code> es el contenedor; dentro van los <code>&lt;input&gt;</code> para campos de texto, email, contraseñas, etc. El atributo <code>type</code> le dice al navegador qué tipo de dato esperar y activa validaciones automáticas.
+          </p>
+          <pre class="rounded-lg p-4 mb-3"><code>&lt;form&gt;
+  &lt;!-- Campo de texto --&gt;
+  &lt;input type="text"
+         placeholder="Tu nombre"&gt;
+
+  &lt;!-- Campo de email --&gt;
+  &lt;input type="email"
+         placeholder="tu@email.com"&gt;
+
+  &lt;!-- Campo de contraseña --&gt;
+  &lt;input type="password"
+         placeholder="Contraseña"&gt;
+
+  &lt;button type="submit"&gt;Registrar&lt;/button&gt;
+&lt;/form&gt;</code></pre>
+          <p class="text-gray-500 text-xs">💡 <code>type="email"</code> valida automáticamente que el texto tenga @</p>
+        </div>
+
+        <!-- Div -->
+        <div class="card-neon rounded-2xl p-6 hover-scale" data-topic="etiqueta-div" data-label="Etiqueta &lt;div&gt; — Contenedor">
+          <div class="flex items-center gap-2 mb-3">
+            <span class="text-xl">🔹</span>
+            <h3 class="font-display font-700 text-neon-fuchsia text-glow-fuchsia">Div — Contenedor</h3>
+          </div>
+          <p class="text-gray-400 text-sm leading-relaxed mb-3">
+            Es una caja <span class="text-neon-lilac">invisible y genérica</span> que agrupa otros elementos. No tiene significado semántico, pero es esencial para aplicar estilos con CSS y crear layouts. Piénsalo como una "bolsa" donde metes cosas para organizarlas y moverlas juntas.
+          </p>
+          <pre class="rounded-lg p-4 mb-3"><code>&lt;!-- Agrupar una tarjeta de perfil --&gt;
+&lt;div class="tarjeta"&gt;
+  &lt;img src="avatar.jpg" alt="Avatar"&gt;
+  &lt;h2&gt;Juan García&lt;/h2&gt;
+  &lt;p&gt;Desarrollador web&lt;/p&gt;
+&lt;/div&gt;
+
+&lt;!-- Layout en columnas --&gt;
+&lt;div class="columna"&gt;
+  &lt;p&gt;Columna izquierda&lt;/p&gt;
+&lt;/div&gt;</code></pre>
+          <p class="text-gray-500 text-xs">💡 Úsalo cuando no haya una etiqueta semántica más apropiada</p>
+        </div>
+
+      </div>
+
+      <!-- Estructura moderna -->
+      <div class="card-neon rounded-2xl p-6 mt-6 hover-scale" data-topic="html5-semantico" data-label="Estructura semántica HTML5">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="text-xl">🔹</span>
+          <h3 class="font-display font-700 text-neon-fuchsia text-glow-fuchsia">Estructura moderna HTML5</h3>
+        </div>
+        <p class="text-gray-400 text-sm leading-relaxed mb-4">
+          HTML5 introdujo etiquetas <span class="text-neon-lilac">semánticas</span> que reemplazan al excesivo uso de <code>&lt;div&gt;</code>. Cada una describe claramente su propósito: el navegador, los buscadores y los lectores de pantalla entienden mejor la estructura de la página. Úsalas para organizar tu web como un documento real.
         </p>
+        <pre class="rounded-lg p-4 mb-4"><code>&lt;header&gt;             &lt;!-- Logo + menú principal --&gt;
+  &lt;h1&gt;Mi Web&lt;/h1&gt;
+  &lt;nav&gt;              &lt;!-- Menú de navegación --&gt;
+    &lt;a href="/"&gt;Inicio&lt;/a&gt;
+    &lt;a href="/blog"&gt;Blog&lt;/a&gt;
+  &lt;/nav&gt;
+&lt;/header&gt;
 
+&lt;main&gt;               &lt;!-- Contenido principal --&gt;
+  &lt;section&gt;          &lt;!-- Bloque temático --&gt;
+    &lt;article&gt;        &lt;!-- Artículo independiente --&gt;
+      &lt;h2&gt;Título del post&lt;/h2&gt;
+      &lt;p&gt;Contenido...&lt;/p&gt;
+    &lt;/article&gt;
+  &lt;/section&gt;
+&lt;/main&gt;
+
+&lt;footer&gt;             &lt;!-- Pie: contacto, copyright --&gt;
+  &lt;p&gt;&copy; 2025 Mi Web&lt;/p&gt;
+&lt;/footer&gt;</code></pre>
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-2 text-xs font-mono">
+          <div class="bg-dark-700 rounded px-3 py-2 border border-neon-purple/20"><span class="text-neon-fuchsia">&lt;header&gt;</span> <span class="text-gray-500">cabecera</span></div>
+          <div class="bg-dark-700 rounded px-3 py-2 border border-neon-purple/20"><span class="text-neon-fuchsia">&lt;nav&gt;</span> <span class="text-gray-500">navegación</span></div>
+          <div class="bg-dark-700 rounded px-3 py-2 border border-neon-purple/20"><span class="text-neon-fuchsia">&lt;main&gt;</span> <span class="text-gray-500">contenido principal</span></div>
+          <div class="bg-dark-700 rounded px-3 py-2 border border-neon-purple/20"><span class="text-neon-fuchsia">&lt;section&gt;</span> <span class="text-gray-500">bloque temático</span></div>
+          <div class="bg-dark-700 rounded px-3 py-2 border border-neon-purple/20"><span class="text-neon-fuchsia">&lt;article&gt;</span> <span class="text-gray-500">contenido independiente</span></div>
+          <div class="bg-dark-700 rounded px-3 py-2 border border-neon-purple/20"><span class="text-neon-fuchsia">&lt;footer&gt;</span> <span class="text-gray-500">pie de página</span></div>
+        </div>
+      </div>
+
+      <!-- Conceptos -->
+      <div class="grid md:grid-cols-2 gap-6 mt-6">
+        <div class="card-neon rounded-2xl p-6" style="border-color:#f000ff44;" data-topic="concepto-dom" data-label="Concepto — DOM">
+          <h3 class="font-display font-700 text-neon-lilac mb-2">🧠 DOM</h3>
+          <p class="text-gray-400 text-sm leading-relaxed mb-3">Cuando el navegador carga tu HTML, lo convierte en un <span class="text-neon-lilac">árbol de nodos</span> llamado DOM (Document Object Model). Cada etiqueta se convierte en un nodo que JavaScript puede leer y modificar en tiempo real, sin recargar la página.</p>
+          <pre class="rounded-lg p-3"><code>&lt;!-- HTML --&gt;
+&lt;h1 id="titulo"&gt;Hola&lt;/h1&gt;
+
+// JS cambia el texto en vivo:
+document.getElementById("titulo")
+  .textContent = "¡Cambiado!";</code></pre>
+        </div>
+        <div class="card-neon rounded-2xl p-6" style="border-color:#f000ff44;" data-topic="concepto-semantica" data-label="Concepto — Semántica HTML">
+          <p class="text-gray-400 text-sm leading-relaxed mb-3">Significa usar la etiqueta <span class="text-neon-lilac">correcta para cada contenido</span>. Los buscadores como Google leen las etiquetas para entender de qué trata la página. Los lectores de pantalla las usan para ayudar a personas ciegas a navegar.</p>
+          <pre class="rounded-lg p-3"><code>&lt;!-- ❌ Sin semántica --&gt;
+&lt;div&gt;Menú&lt;/div&gt;
+&lt;div&gt;Artículo principal&lt;/div&gt;
+
+&lt;!-- ✅ Con semántica --&gt;
+&lt;nav&gt;Menú&lt;/nav&gt;
+&lt;article&gt;Artículo principal&lt;/article&gt;</code></pre>
+          <p class="text-gray-500 text-xs mt-2">Mejora: <span class="text-green-400">SEO</span> + <span class="text-blue-400">accesibilidad</span> + <span class="text-neon-lilac">mantenibilidad</span></p>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- CURSOS RECOMENDADOS -->
+    <section id="cursos">
+      <div class="flex items-center gap-3 mb-2">
+        <span class="text-3xl">🎓</span>
+        <h2 class="section-title text-3xl md:text-4xl text-white">Cursos GRATIS</h2>
+      </div>
+
+      <!-- VIDEO Cursos — Soy Dalto -->
+      <a href="https://www.youtube.com/watch?v=ELSm-G201Ls" target="_blank" class="yt-btn mb-6">
+        <div class="yt-btn-icon">▶</div>
+        <div class="yt-btn-info">
+          <span class="yt-btn-label">VIDEO RECOMENDADO · Soy Dalto</span>
+          <span class="yt-btn-title">Curso de HTML y CSS desde CERO completo — el mejor punto de partida</span>
+        </div>
+        <div class="yt-btn-arrow">↗</div>
+      </a>
+      <div class="h-1 w-32 rounded mb-10" style="background: linear-gradient(to right, #f000ff, #b300ff44);"></div>
+
+      <div class="grid md:grid-cols-2 gap-8">
+
+        <div>
+          <h3 class="font-display font-700 text-neon-lilac mb-5 text-lg flex items-center gap-2">🌐 Plataformas</h3>
+          <div class="space-y-3">
+            <a href="https://www.freecodecamp.org" target="_blank" class="card-neon rounded-xl p-4 flex items-center gap-4 hover-scale block">
+              <span class="text-2xl">🔥</span>
+              <div>
+                <p class="font-700 text-white">freeCodeCamp</p>
+                <p class="text-gray-500 text-sm">Curso completo — muy recomendado</p>
+              </div>
+              <span class="ml-auto text-neon-fuchsia">→</span>
+            </a>
+            <a href="https://www.coursera.org" target="_blank" class="card-neon rounded-xl p-4 flex items-center gap-4 hover-scale block">
+              <span class="text-2xl">🎓</span>
+              <div>
+                <p class="font-700 text-white">Coursera</p>
+                <p class="text-gray-500 text-sm">Cursos universitarios gratis (modo oyente)</p>
+              </div>
+              <span class="ml-auto text-neon-fuchsia">→</span>
+            </a>
+            <a href="https://www.edx.org" target="_blank" class="card-neon rounded-xl p-4 flex items-center gap-4 hover-scale block">
+              <span class="text-2xl">📚</span>
+              <div>
+                <p class="font-700 text-white">edX</p>
+                <p class="text-gray-500 text-sm">Contenido de universidades top</p>
+              </div>
+              <span class="ml-auto text-neon-fuchsia">→</span>
+            </a>
+            <a href="https://www.khanacademy.org" target="_blank" class="card-neon rounded-xl p-4 flex items-center gap-4 hover-scale block">
+              <span class="text-2xl">🧑‍🏫</span>
+              <div>
+                <p class="font-700 text-white">Khan Academy</p>
+                <p class="text-gray-500 text-sm">Perfecto para empezar desde cero</p>
+              </div>
+              <span class="ml-auto text-neon-fuchsia">→</span>
+            </a>
+          </div>
+        </div>
+
+        <div>
+          <h3 class="font-display font-700 text-neon-lilac mb-5 text-lg flex items-center gap-2">📺 YouTubers</h3>
+          <p class="text-gray-500 text-sm mb-4 font-mono">En español</p>
+          <div class="space-y-3 mb-6">
+            <div class="card-neon rounded-xl p-4 flex items-center gap-4 hover-scale">
+              <span class="text-2xl">🇪🇸</span>
+              <div>
+                <p class="font-700 text-white">Fazt</p>
+                <p class="text-gray-500 text-sm">Explica simple y práctico</p>
+              </div>
+            </div>
+            <div class="card-neon rounded-xl p-4 flex items-center gap-4 hover-scale">
+              <span class="text-2xl">🎯</span>
+              <div>
+                <p class="font-700 text-white">Soy Dalto</p>
+                <p class="text-gray-500 text-sm">Cursos completos desde cero</p>
+              </div>
+            </div>
+            <div class="card-neon rounded-xl p-4 flex items-center gap-4 hover-scale">
+              <span class="text-2xl">⚡</span>
+              <div>
+                <p class="font-700 text-white">midulive</p>
+                <p class="text-gray-500 text-sm">Más avanzado pero excelente</p>
+              </div>
+            </div>
+          </div>
+          <p class="text-gray-500 text-sm mb-4 font-mono">En inglés</p>
+          <div class="space-y-3">
+            <div class="card-neon rounded-xl p-4 flex items-center gap-4 hover-scale">
+              <span class="text-2xl">🇺🇸</span>
+              <div>
+                <p class="font-700 text-white">Traversy Media</p>
+                <p class="text-gray-500 text-sm">Clásico y muy completo</p>
+              </div>
+            </div>
+            <div class="card-neon rounded-xl p-4 flex items-center gap-4 hover-scale">
+              <span class="text-2xl">🥷</span>
+              <div>
+                <p class="font-700 text-white">The Net Ninja</p>
+                <p class="text-gray-500 text-sm">Series estructuradas y claras</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Herramientas -->
+      <div class="mt-10">
+        <h3 class="font-display font-700 text-neon-lilac mb-5 text-lg flex items-center gap-2">🧰 Herramientas recomendadas</h3>
         <div class="grid md:grid-cols-2 gap-4">
-          <div class="p-4 rounded-lg border border-neon-green/30 bg-neon-green/5">
-            <div class="font-display text-xs text-neon-green tracking-widest mb-2">→ ENTRADA</div>
-            <div class="font-mono text-white/70 text-sm flex items-center gap-2">
-              <span class="text-2xl">⌨️</span>
-              <span>Teclado del usuario</span>
+          <div class="card-neon rounded-xl p-5 flex items-center gap-4 hover-scale" style="border-color:#0078d4aa;">
+            <span class="text-3xl">💙</span>
+            <div>
+              <p class="font-700 text-white">Visual Studio Code</p>
+              <p class="text-gray-400 text-sm">El mejor editor para empezar — gratis</p>
             </div>
-            <div class="font-mono text-white/40 text-xs mt-1">stdin / input()</div>
           </div>
-          <div class="p-4 rounded-lg border border-neon-pink/30 bg-neon-pink/5">
-            <div class="font-display text-xs text-neon-pink tracking-widest mb-2">← SALIDA</div>
-            <div class="font-mono text-white/70 text-sm flex items-center gap-2">
-              <span class="text-2xl">🖥️</span>
-              <span>Pantalla / terminal</span>
+          <div class="card-neon rounded-xl p-5 flex items-center gap-4 hover-scale" style="border-color:#f4b400aa;">
+            <span class="text-3xl">🌐</span>
+            <div>
+              <p class="font-700 text-white">Google Chrome</p>
+              <p class="text-gray-400 text-sm">Usa las DevTools con <kbd class="tag-badge">F12</kbd></p>
             </div>
-            <div class="font-mono text-white/40 text-xs mt-1">stdout / print()</div>
           </div>
         </div>
       </div>
+    </section>
 
-      <!-- Terminal simulada interactiva -->
-      <div class="algo-card">
-        <div class="font-display text-xs text-neon-yellow tracking-widest mb-4">▶ TERMINAL SIMULADA</div>
-        <div id="terminal-output"
-          class="bg-dark-950 border border-neon-cyan/20 rounded-lg p-4 font-mono text-sm min-h-40 mb-3"
-          style="max-height:260px; overflow-y:auto;">
-          <div class="text-neon-green">Sistema iniciado. Escribe un número y pulsa Enter.</div>
-          <div class="text-white/40">──────────────────────────────</div>
-        </div>
-        <div class="flex gap-2">
-          <span class="text-neon-cyan font-mono">$</span>
-          <input id="terminal-input"
-            type="text"
-            placeholder="Ingresa un número..."
-            class="flex-1 bg-transparent border-b border-neon-cyan/40 text-neon-cyan font-mono text-sm outline-none placeholder-white/20 focus:border-neon-cyan transition-colors"
-            onkeydown="handleTerminalInput(event)" />
-        </div>
-        <p class="text-white/30 font-body text-xs mt-2">Presiona Enter · La terminal ejecutará multiplicación ×2</p>
+    <!-- ERRORES COMUNES -->
+    <section>
+      <div class="flex items-center gap-3 mb-8">
+        <span class="text-3xl">⚠️</span>
+        <h2 class="section-title text-3xl md:text-4xl text-white">Errores comunes</h2>
       </div>
-    </div>
-
-    <!-- ═══════════ TAB: ALGORITMOS ═══════════ -->
-    <div id="tab-algoritmos" class="tab-panel">
-      <p class="text-white/50 font-body text-base mb-6 tracking-wide">
-        Algoritmos que <span class="text-neon-cyan">organizan datos</span> en orden ascendente o descendente.
-        Cada uno tiene un enfoque, costo y caso de uso ideal.
-      </p>
-
-      <!-- Cards de algoritmos -->
-      <div class="space-y-4">
-        <!-- Bubble Sort -->
-        <div class="algo-card">
-          <div class="flex items-start justify-between gap-4 flex-wrap">
-            <div class="flex items-center gap-3">
-              <span class="w-10 h-10 flex items-center justify-center rounded-full bg-neon-green/20 text-neon-green font-display text-xs border border-neon-green/40">01</span>
-              <div>
-                <div class="font-display text-base text-neon-green tracking-wider">Bubble Sort</div>
-                <div class="text-white/40 font-body text-sm">Ordenamiento Burbuja</div>
-              </div>
-            </div>
-            <div class="flex gap-2 flex-wrap">
-              <span class="complexity-badge text-neon-green" style="border-color:#39ff1444">O(n²)</span>
-              <span class="complexity-badge text-white/40" style="border-color:#ffffff22">Fácil</span>
-            </div>
-          </div>
-          <div class="mt-4 text-white/60 font-body text-sm leading-relaxed">
-            Compara <strong class="text-neon-green">pares de elementos</strong> adyacentes y los intercambia si están en orden incorrecto.
-            Recorre la lista múltiples veces "empujando" el mayor hacia el final.
-          </div>
-          <div class="mt-3 font-mono text-xs text-white/40 bg-dark-950/80 rounded p-3 border border-neon-green/10">
-            [5, 3, 2] → [3, 5, 2] → [3, 2, 5] → [2, 3, 5]
-          </div>
-          <div class="mt-3 flex gap-4 text-xs font-body text-white/40">
-            <span class="text-neon-green/70">✓ Simple de implementar</span>
-            <span class="text-neon-pink/70">✗ Lento para listas grandes</span>
-          </div>
-        </div>
-
-        <!-- Selection Sort -->
-        <div class="algo-card">
-          <div class="flex items-start justify-between gap-4 flex-wrap">
-            <div class="flex items-center gap-3">
-              <span class="w-10 h-10 flex items-center justify-center rounded-full bg-neon-cyan/20 text-neon-cyan font-display text-xs border border-neon-cyan/40">02</span>
-              <div>
-                <div class="font-display text-base text-neon-cyan tracking-wider">Selection Sort</div>
-                <div class="text-white/40 font-body text-sm">Ordenamiento por Selección</div>
-              </div>
-            </div>
-            <div class="flex gap-2 flex-wrap">
-              <span class="complexity-badge text-neon-cyan" style="border-color:#00f5ff44">O(n²)</span>
-              <span class="complexity-badge text-white/40" style="border-color:#ffffff22">Fácil</span>
-            </div>
-          </div>
-          <div class="mt-4 text-white/60 font-body text-sm leading-relaxed">
-            Busca el <strong class="text-neon-cyan">elemento mínimo</strong> en cada iteración y lo coloca al inicio de la sección no ordenada.
-            Menos intercambios que Bubble Sort.
-          </div>
-          <div class="mt-3 flex gap-4 text-xs font-body text-white/40">
-            <span class="text-neon-green/70">✓ Pocos intercambios</span>
-            <span class="text-neon-pink/70">✗ Siempre O(n²)</span>
-          </div>
-        </div>
-
-        <!-- Insertion Sort -->
-        <div class="algo-card">
-          <div class="flex items-start justify-between gap-4 flex-wrap">
-            <div class="flex items-center gap-3">
-              <span class="w-10 h-10 flex items-center justify-center rounded-full bg-neon-yellow/20 text-neon-yellow font-display text-xs border border-neon-yellow/40">03</span>
-              <div>
-                <div class="font-display text-base text-neon-yellow tracking-wider">Insertion Sort</div>
-                <div class="text-white/40 font-body text-sm">Ordenamiento por Inserción</div>
-              </div>
-            </div>
-            <div class="flex gap-2 flex-wrap">
-              <span class="complexity-badge text-neon-yellow" style="border-color:#ffe60044">O(n²)</span>
-              <span class="complexity-badge text-neon-green" style="border-color:#39ff1444">O(n) best</span>
-            </div>
-          </div>
-          <div class="mt-4 text-white/60 font-body text-sm leading-relaxed">
-            Construye la lista ordenada <strong class="text-neon-yellow">de a poco</strong>, tomando cada elemento y
-            ubicándolo en la posición correcta dentro de la sección ya ordenada. Muy eficiente en listas pequeñas o casi ordenadas.
-          </div>
-          <div class="mt-3 flex gap-4 text-xs font-body text-white/40">
-            <span class="text-neon-green/70">✓ Eficiente si casi ordenado</span>
-            <span class="text-neon-pink/70">✗ Lento en listas inversas</span>
-          </div>
-        </div>
-
-        <!-- Merge Sort -->
-        <div class="algo-card">
-          <div class="flex items-start justify-between gap-4 flex-wrap">
-            <div class="flex items-center gap-3">
-              <span class="w-10 h-10 flex items-center justify-center rounded-full bg-neon-pink/20 text-neon-pink font-display text-xs border border-neon-pink/40">04</span>
-              <div>
-                <div class="font-display text-base text-neon-pink tracking-wider">Merge Sort</div>
-                <div class="text-white/40 font-body text-sm">Ordenamiento por Mezcla</div>
-              </div>
-            </div>
-            <div class="flex gap-2 flex-wrap">
-              <span class="complexity-badge text-neon-pink" style="border-color:#ff2d7844">O(n log n)</span>
-              <span class="complexity-badge text-neon-green" style="border-color:#39ff1444">Estable</span>
-            </div>
-          </div>
-          <div class="mt-4 text-white/60 font-body text-sm leading-relaxed">
-            Estrategia de <strong class="text-neon-pink">divide y conquista</strong>: divide la lista en mitades, ordena cada mitad recursivamente
-            y luego las combina (merge). Garantiza O(n log n) en todos los casos.
-          </div>
-          <div class="mt-3 flex gap-4 text-xs font-body text-white/40">
-            <span class="text-neon-green/70">✓ Siempre O(n log n)</span>
-            <span class="text-neon-pink/70">✗ Usa memoria extra</span>
-          </div>
-        </div>
-
-        <!-- Quick Sort -->
-        <div class="algo-card">
-          <div class="flex items-start justify-between gap-4 flex-wrap">
-            <div class="flex items-center gap-3">
-              <span class="w-10 h-10 flex items-center justify-center rounded-full bg-neon-purple/20 text-neon-purple font-display text-xs border border-neon-purple/40">05</span>
-              <div>
-                <div class="font-display text-base text-neon-purple tracking-wider">Quick Sort</div>
-                <div class="text-white/40 font-body text-sm">Ordenamiento Rápido</div>
-              </div>
-            </div>
-            <div class="flex gap-2 flex-wrap">
-              <span class="complexity-badge text-neon-purple" style="border-color:#bf5fff44">O(n log n)</span>
-              <span class="complexity-badge text-neon-yellow" style="border-color:#ffe60044">O(n²) worst</span>
-            </div>
-          </div>
-          <div class="mt-4 text-white/60 font-body text-sm leading-relaxed">
-            Elige un <strong class="text-neon-purple">pivote</strong>, divide en elementos menores y mayores, y ordena cada subgrupo recursivamente.
-            Uno de los más rápidos en la práctica por su bajo costo en caché.
-          </div>
-          <div class="mt-3 flex gap-4 text-xs font-body text-white/40">
-            <span class="text-neon-green/70">✓ Muy rápido en promedio</span>
-            <span class="text-neon-pink/70">✗ Peor caso O(n²)</span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ═══════════ TAB: VISUALIZER ═══════════ -->
-    <div id="tab-visualizer" class="tab-panel">
-      <div class="algo-card mb-6">
-        <div class="font-display text-sm text-neon-cyan tracking-widest mb-4">▶ VISUALIZADOR INTERACTIVO</div>
-
-        <!-- Controls -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
-          <div>
-            <label class="font-display text-xs text-white/40 tracking-widest block mb-1">ALGORITMO</label>
-            <select id="algo-select"
-              class="w-full bg-dark-950 border border-neon-cyan/30 text-neon-cyan font-mono text-xs rounded p-2 outline-none focus:border-neon-cyan">
-              <option value="bubble">Bubble Sort</option>
-              <option value="selection">Selection Sort</option>
-              <option value="insertion">Insertion Sort</option>
-              <option value="merge">Merge Sort</option>
-              <option value="quick">Quick Sort</option>
-            </select>
-          </div>
-          <div>
-            <label class="font-display text-xs text-white/40 tracking-widest block mb-1">VELOCIDAD</label>
-            <select id="speed-select"
-              class="w-full bg-dark-950 border border-neon-cyan/30 text-neon-cyan font-mono text-xs rounded p-2 outline-none focus:border-neon-cyan">
-              <option value="600">Lento</option>
-              <option value="300" selected>Normal</option>
-              <option value="100">Rápido</option>
-              <option value="30">Turbo</option>
-            </select>
-          </div>
-          <div>
-            <label class="font-display text-xs text-white/40 tracking-widest block mb-1">TAMAÑO</label>
-            <input type="range" id="size-range" min="6" max="20" value="12"
-              class="w-full mt-1 accent-cyan-400"
-              oninput="document.getElementById('size-label').textContent=this.value; generateArray()">
-            <span id="size-label" class="text-neon-cyan font-mono text-xs">12</span> elementos
-          </div>
-          <div class="flex flex-col justify-end">
-            <div class="flex gap-2">
-              <button onclick="generateArray()"
-                class="flex-1 py-2 px-3 rounded font-display text-xs tracking-wider border border-neon-purple/50 text-neon-purple hover:bg-neon-purple/10 transition-all">
-                RESET
-              </button>
-              <button id="start-btn" onclick="startSort()"
-                class="flex-1 py-2 px-3 rounded font-display text-xs tracking-wider border border-neon-cyan/50 text-neon-cyan hover:bg-neon-cyan/10 transition-all">
-                ▶ START
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Stats -->
-        <div class="grid grid-cols-3 gap-3 mb-5">
-          <div class="p-2 rounded border border-white/10 text-center">
-            <div class="font-display text-xs text-white/30 tracking-widest">COMPARACIONES</div>
-            <div id="stat-comps" class="font-mono text-neon-cyan text-lg font-bold">0</div>
-          </div>
-          <div class="p-2 rounded border border-white/10 text-center">
-            <div class="font-display text-xs text-white/30 tracking-widest">SWAPS</div>
-            <div id="stat-swaps" class="font-mono text-neon-pink text-lg font-bold">0</div>
-          </div>
-          <div class="p-2 rounded border border-white/10 text-center">
-            <div class="font-display text-xs text-white/30 tracking-widest">ESTADO</div>
-            <div id="stat-status" class="font-mono text-neon-green text-sm font-bold">LISTO</div>
-          </div>
-        </div>
-
-        <!-- Step description -->
-        <div id="step-desc" class="font-mono text-xs text-white/40 mb-4 min-h-5 text-center italic">
-          Pulsa START para comenzar la animación
-        </div>
-
-        <!-- Bars visualizer -->
-        <div id="bars-container"
-          class="flex items-end justify-center gap-0.5 bg-dark-950/50 rounded-lg border border-neon-cyan/10 p-4"
-          style="height: 220px;">
-        </div>
-
-        <!-- Legend -->
-        <div class="flex gap-4 mt-3 justify-center flex-wrap">
-          <div class="flex items-center gap-1 text-xs font-mono">
-            <span class="w-3 h-3 rounded-sm inline-block" style="background:#00f5ff"></span>
-            <span class="text-white/40">Activo</span>
-          </div>
-          <div class="flex items-center gap-1 text-xs font-mono">
-            <span class="w-3 h-3 rounded-sm inline-block" style="background:#ff2d78"></span>
-            <span class="text-white/40">Comparando</span>
-          </div>
-          <div class="flex items-center gap-1 text-xs font-mono">
-            <span class="w-3 h-3 rounded-sm inline-block" style="background:#39ff14"></span>
-            <span class="text-white/40">Ordenado</span>
-          </div>
-          <div class="flex items-center gap-1 text-xs font-mono">
-            <span class="w-3 h-3 rounded-sm inline-block bg-white/20"></span>
-            <span class="text-white/40">Sin ordenar</span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ═══════════ TAB: COMPLEJIDAD ═══════════ -->
-    <div id="tab-complejidad" class="tab-panel">
-      <!-- Big O cards -->
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        <div class="algo-card text-center">
-          <div class="font-mono text-2xl text-neon-green mb-1">O(1)</div>
-          <div class="font-display text-xs text-white/40 tracking-widest">CONSTANTE</div>
-          <div class="text-white/50 text-xs mt-2 font-body">El tiempo no depende del input</div>
-        </div>
-        <div class="algo-card text-center">
-          <div class="font-mono text-2xl text-neon-cyan mb-1">O(n)</div>
-          <div class="font-display text-xs text-white/40 tracking-widest">LINEAL</div>
-          <div class="text-white/50 text-xs mt-2 font-body">Crece proporcionalmente</div>
-        </div>
-        <div class="algo-card text-center">
-          <div class="font-mono text-2xl text-neon-yellow mb-1">O(n log n)</div>
-          <div class="font-display text-xs text-white/40 tracking-widest">EFICIENTE</div>
-          <div class="text-white/50 text-xs mt-2 font-body">Merge Sort, Quick Sort</div>
-        </div>
-        <div class="algo-card text-center">
-          <div class="font-mono text-2xl text-neon-pink mb-1">O(n²)</div>
-          <div class="font-display text-xs text-white/40 tracking-widest">CUADRÁTICO</div>
-          <div class="text-white/50 text-xs mt-2 font-body">Bubble, Selection, Insertion</div>
-        </div>
-      </div>
-
-      <!-- Comparison table -->
-      <div class="algo-card mb-8">
-        <div class="font-display text-sm text-neon-cyan tracking-widest mb-4">📊 TABLA COMPARATIVA</div>
-        <div class="overflow-x-auto">
-          <table class="w-full font-mono text-xs text-center">
-            <thead>
-              <tr class="border-b border-neon-cyan/20">
-                <th class="text-left py-2 px-3 text-white/40 font-display tracking-widest">ALGORITMO</th>
-                <th class="py-2 px-3 text-white/40 font-display">MEJOR</th>
-                <th class="py-2 px-3 text-white/40 font-display">PROMEDIO</th>
-                <th class="py-2 px-3 text-white/40 font-display">PEOR</th>
-                <th class="py-2 px-3 text-white/40 font-display">ESTABLE</th>
-                <th class="py-2 px-3 text-white/40 font-display">IN-PLACE</th>
-              </tr>
-            </thead>
-            <tbody class="text-white/70">
-              <tr class="border-b border-white/5 hover:bg-neon-green/5 transition-colors">
-                <td class="text-left py-2 px-3 text-neon-green font-display text-xs tracking-wider">Bubble</td>
-                <td class="py-2 px-3 text-neon-green">O(n)</td>
-                <td class="py-2 px-3 text-neon-yellow">O(n²)</td>
-                <td class="py-2 px-3 text-neon-pink">O(n²)</td>
-                <td class="py-2 px-3 text-neon-green">✓</td>
-                <td class="py-2 px-3 text-neon-green">✓</td>
-              </tr>
-              <tr class="border-b border-white/5 hover:bg-neon-cyan/5 transition-colors">
-                <td class="text-left py-2 px-3 text-neon-cyan font-display text-xs tracking-wider">Selection</td>
-                <td class="py-2 px-3 text-neon-yellow">O(n²)</td>
-                <td class="py-2 px-3 text-neon-yellow">O(n²)</td>
-                <td class="py-2 px-3 text-neon-pink">O(n²)</td>
-                <td class="py-2 px-3 text-neon-pink">✗</td>
-                <td class="py-2 px-3 text-neon-green">✓</td>
-              </tr>
-              <tr class="border-b border-white/5 hover:bg-neon-yellow/5 transition-colors">
-                <td class="text-left py-2 px-3 text-neon-yellow font-display text-xs tracking-wider">Insertion</td>
-                <td class="py-2 px-3 text-neon-green">O(n)</td>
-                <td class="py-2 px-3 text-neon-yellow">O(n²)</td>
-                <td class="py-2 px-3 text-neon-pink">O(n²)</td>
-                <td class="py-2 px-3 text-neon-green">✓</td>
-                <td class="py-2 px-3 text-neon-green">✓</td>
-              </tr>
-              <tr class="border-b border-white/5 hover:bg-neon-pink/5 transition-colors">
-                <td class="text-left py-2 px-3 text-neon-pink font-display text-xs tracking-wider">Merge</td>
-                <td class="py-2 px-3 text-neon-green">O(n log n)</td>
-                <td class="py-2 px-3 text-neon-green">O(n log n)</td>
-                <td class="py-2 px-3 text-neon-green">O(n log n)</td>
-                <td class="py-2 px-3 text-neon-green">✓</td>
-                <td class="py-2 px-3 text-neon-pink">✗</td>
-              </tr>
-              <tr class="hover:bg-neon-purple/5 transition-colors">
-                <td class="text-left py-2 px-3 text-neon-purple font-display text-xs tracking-wider">Quick</td>
-                <td class="py-2 px-3 text-neon-green">O(n log n)</td>
-                <td class="py-2 px-3 text-neon-green">O(n log n)</td>
-                <td class="py-2 px-3 text-neon-pink">O(n²)</td>
-                <td class="py-2 px-3 text-neon-pink">✗</td>
-                <td class="py-2 px-3 text-neon-green">✓</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- Estabilidad e In-place -->
       <div class="grid md:grid-cols-2 gap-4">
-        <div class="algo-card">
-          <div class="font-display text-xs text-neon-purple tracking-widest mb-3">⟁ ESTABILIDAD</div>
-          <p class="text-white/60 font-body text-sm leading-relaxed">
-            Un algoritmo es <span class="text-neon-purple">estable</span> si mantiene el orden relativo de
-            elementos con valores iguales después del ordenamiento.
-          </p>
+        <div class="error-item rounded-r-xl">
+          <p class="text-red-300 font-700">❌ No cerrar etiquetas</p>
+          <p class="text-gray-500 text-sm">Ej: <code>&lt;p&gt;texto</code> sin <code>&lt;/p&gt;</code></p>
         </div>
-        <div class="algo-card">
-          <div class="font-display text-xs text-neon-yellow tracking-widest mb-3">◈ IN-PLACE</div>
-          <p class="text-white/60 font-body text-sm leading-relaxed">
-            Un algoritmo es <span class="text-neon-yellow">in-place</span> si no necesita
-            memoria extra significativa — ordena modificando el arreglo original.
-          </p>
+        <div class="error-item rounded-r-xl">
+          <p class="text-red-300 font-700">❌ Usar muchos &lt;div&gt; sin sentido</p>
+          <p class="text-gray-500 text-sm">Usa etiquetas semánticas cuando puedas</p>
+        </div>
+        <div class="error-item rounded-r-xl">
+          <p class="text-red-300 font-700">❌ No usar <code>alt</code> en imágenes</p>
+          <p class="text-gray-500 text-sm">Afecta accesibilidad y SEO</p>
+        </div>
+        <div class="error-item rounded-r-xl">
+          <p class="text-red-300 font-700">❌ Mezclar HTML con estilos</p>
+          <p class="text-gray-500 text-sm">Separa HTML, CSS y JS en archivos</p>
         </div>
       </div>
-    </div>
+    </section>
 
-    <!-- ═══════════ TAB: CÓDIGO ═══════════ -->
-    <div id="tab-codigo" class="tab-panel">
-      <div class="font-display text-sm text-neon-cyan tracking-widest mb-4">⟨/⟩ IMPLEMENTACIÓN EN PYTHON</div>
-
-      <!-- Selector -->
-      <div class="flex gap-2 flex-wrap mb-5">
-        <button class="code-tab-btn tab-btn active text-xs" onclick="showCode('bubble', this)">Bubble</button>
-        <button class="code-tab-btn tab-btn text-xs" onclick="showCode('selection', this)">Selection</button>
-        <button class="code-tab-btn tab-btn text-xs" onclick="showCode('insertion', this)">Insertion</button>
-        <button class="code-tab-btn tab-btn text-xs" onclick="showCode('merge', this)">Merge</button>
-        <button class="code-tab-btn tab-btn text-xs" onclick="showCode('quick', this)">Quick</button>
-        <button class="code-tab-btn tab-btn text-xs" onclick="showCode('consola', this)">Consola Completo</button>
+    <!-- RUTA DE APRENDIZAJE -->
+    <section id="ruta">
+      <div class="flex items-center gap-3 mb-2">
+        <span class="text-3xl">🧠</span>
+        <h2 class="section-title text-3xl md:text-4xl text-white">Ruta recomendada</h2>
       </div>
 
-      <div id="code-display" class="code-block text-sm leading-7">
-        <!-- Filled by JS -->
-      </div>
-    </div>
+      <!-- VIDEO Ruta de aprendizaje — midulive -->
+      <a href="https://www.youtube.com/watch?v=CvfB4KzP4us" target="_blank" class="yt-btn mb-6">
+        <div class="yt-btn-icon">▶</div>
+        <div class="yt-btn-info">
+          <span class="yt-btn-label">VIDEO RECOMENDADO · midulive</span>
+          <span class="yt-btn-title">Ruta de aprendizaje para Desarrollador Web Frontend — paso a paso</span>
+        </div>
+        <div class="yt-btn-arrow">↗</div>
+      </a>
+      <div class="h-1 w-32 rounded mb-10" style="background: linear-gradient(to right, #f000ff, #b300ff44);"></div>
 
-    <!-- ═══════════ TAB: RECURSOS ═══════════ -->
-    <div id="tab-recursos" class="tab-panel">
-      <!-- Tips -->
-      <div class="algo-card mb-6">
-        <div class="font-display text-sm text-neon-yellow tracking-widest mb-4">🧠 CONSEJOS PARA APRENDER</div>
-        <div class="space-y-3">
-          <div class="flex items-start gap-3">
-            <span class="text-neon-cyan font-mono text-xs w-6 shrink-0 mt-0.5">01</span>
+      <div class="space-y-4">
+        <div class="route-step">
+          <div class="card-neon rounded-xl p-5 flex items-center gap-5 hover-scale" style="border-color:#f000ffaa;">
+            <span class="step-num text-4xl">1</span>
             <div>
-              <div class="text-white/80 font-body text-base">Practica en consola</div>
-              <div class="text-white/40 font-body text-sm">Python, C++ o Java son perfectos para empezar</div>
+              <p class="font-display font-700 text-white text-lg">HTML</p>
+              <p class="text-gray-500 text-sm">Estructura y semántica</p>
             </div>
+            <span class="ml-auto tag-badge" style="background:#1e0040;color:#f000ff;border-color:#f000ff66;">Ahora</span>
           </div>
-          <div class="flex items-start gap-3">
-            <span class="text-neon-pink font-mono text-xs w-6 shrink-0 mt-0.5">02</span>
+        </div>
+        <div class="route-step">
+          <div class="card-neon rounded-xl p-5 flex items-center gap-5 hover-scale">
+            <span class="step-num text-4xl">2</span>
             <div>
-              <div class="text-white/80 font-body text-base">Visualiza los pasos</div>
-              <div class="text-white/40 font-body text-sm">Dibuja en papel o usa el visualizador de esta página</div>
-            </div>
-          </div>
-          <div class="flex items-start gap-3">
-            <span class="text-neon-green font-mono text-xs w-6 shrink-0 mt-0.5">03</span>
-            <div>
-              <div class="text-white/80 font-body text-base">Compara tiempos de ejecución</div>
-              <div class="text-white/40 font-body text-sm">Mide con listas de distintos tamaños</div>
-            </div>
-          </div>
-          <div class="flex items-start gap-3">
-            <span class="text-neon-purple font-mono text-xs w-6 shrink-0 mt-0.5">04</span>
-            <div>
-              <div class="text-white/80 font-body text-base">Entiende, no memorices</div>
-              <div class="text-white/40 font-body text-sm">Lo más importante es comprender cómo funcionan</div>
+              <p class="font-display font-700 text-white text-lg">CSS</p>
+              <p class="text-gray-500 text-sm">Diseño, colores, animaciones</p>
             </div>
           </div>
         </div>
+        <div class="route-step">
+          <div class="card-neon rounded-xl p-5 flex items-center gap-5 hover-scale">
+            <span class="step-num text-4xl">3</span>
+            <div>
+              <p class="font-display font-700 text-white text-lg">JavaScript</p>
+              <p class="text-gray-500 text-sm">Lógica e interactividad</p>
+            </div>
+          </div>
+        </div>
+        <div class="route-step">
+          <div class="card-neon rounded-xl p-5 flex items-center gap-5 hover-scale">
+            <span class="step-num text-4xl">4</span>
+            <div>
+              <p class="font-display font-700 text-white text-lg">Git + GitHub</p>
+              <p class="text-gray-500 text-sm">Control de versiones y colaboración</p>
+            </div>
+          </div>
+        </div>
+        <div class="route-step">
+          <div class="card-neon rounded-xl p-5 flex items-center gap-5 hover-scale">
+            <span class="step-num text-4xl">5</span>
+            <div>
+              <p class="font-display font-700 text-white text-lg">Frameworks</p>
+              <p class="text-gray-500 text-sm">React, Vue, Angular…</p>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <!-- Plataformas -->
-      <div class="algo-card mb-6">
-        <div class="font-display text-sm text-neon-cyan tracking-widest mb-4">🎯 PLATAFORMAS DE PRÁCTICA</div>
+      <!-- Cómo mejorar rápido -->
+      <div class="card-neon rounded-2xl p-8 mt-10" style="border-color:#f000ff66; background: linear-gradient(135deg, #1e004544, #06000dcc);">
+        <h3 class="font-display font-700 text-neon-fuchsia text-glow-fuchsia text-xl mb-6">🚀 Cómo mejorar rápido</h3>
         <div class="grid md:grid-cols-2 gap-3">
-          <a href="https://www.hackerrank.com" target="_blank"
-            class="flex items-center gap-3 p-3 rounded-lg border border-neon-green/30 bg-neon-green/5 hover:bg-neon-green/10 transition-all group">
-            <span class="text-2xl">⚔️</span>
-            <div>
-              <div class="text-neon-green font-display text-xs tracking-wider group-hover:underline">HackerRank</div>
-              <div class="text-white/40 font-body text-xs">Desafíos estructurados por dificultad</div>
-            </div>
-            <span class="ml-auto text-white/20 group-hover:text-neon-green transition-colors">→</span>
-          </a>
-          <a href="https://www.leetcode.com" target="_blank"
-            class="flex items-center gap-3 p-3 rounded-lg border border-neon-yellow/30 bg-neon-yellow/5 hover:bg-neon-yellow/10 transition-all group">
-            <span class="text-2xl">🏆</span>
-            <div>
-              <div class="text-neon-yellow font-display text-xs tracking-wider group-hover:underline">LeetCode</div>
-              <div class="text-white/40 font-body text-xs">Preparación para entrevistas técnicas</div>
-            </div>
-            <span class="ml-auto text-white/20 group-hover:text-neon-yellow transition-colors">→</span>
-          </a>
+          <div class="check-item rounded-r-xl">✔️ Practica todos los días</div>
+          <div class="check-item rounded-r-xl">✔️ Copia ejemplos y modifícalos</div>
+          <div class="check-item rounded-r-xl">✔️ Crea proyectos pequeños</div>
+          <div class="check-item rounded-r-xl">✔️ Rompe el código y arréglalo</div>
         </div>
       </div>
+    </section>
 
-      <!-- Resumen final -->
-      <div class="algo-card border-neon-cyan/30" style="border-color:#00f5ff44; box-shadow: 0 0 30px rgba(0,245,255,0.08)">
-        <div class="font-display text-sm text-neon-cyan tracking-widest mb-4">🚀 RESUMEN RÁPIDO</div>
-        <div class="space-y-2">
-          <div class="flex items-center gap-3 font-body text-sm text-white/70">
-            <span class="text-neon-cyan">▸</span>
-            <span><strong class="text-white">Algoritmia</strong> = resolver problemas con pasos lógicos</span>
-          </div>
-          <div class="flex items-center gap-3 font-body text-sm text-white/70">
-            <span class="text-neon-green">▸</span>
-            <span><strong class="text-white">Ordenamiento</strong> = organizar datos de forma eficiente</span>
-          </div>
-          <div class="flex items-center gap-3 font-body text-sm text-white/70">
-            <span class="text-neon-pink">▸</span>
-            <span><strong class="text-white">En consola</strong> = interacción por texto puro</span>
-          </div>
-          <div class="flex items-center gap-3 font-body text-sm text-white/70">
-            <span class="text-neon-yellow">▸</span>
-            <span><strong class="text-white">Algoritmos clave</strong>: Bubble · Selection · Insertion · Merge · Quick</span>
-          </div>
-          <div class="flex items-center gap-3 font-body text-sm text-white/70">
-            <span class="text-neon-purple">▸</span>
-            <span><strong class="text-white">Lo más importante</strong>: entender, no memorizar</span>
-          </div>
+    <!-- RESUMEN -->
+    <section>
+      <div class="card-neon rounded-2xl p-10 text-center" style="background: radial-gradient(ellipse at center, #1e004488 0%, #06000dcc 70%); border-color: #f000ff88;">
+        <h2 class="section-title text-4xl md:text-5xl mb-4">
+          <span class="text-neon-fuchsia text-glow-fuchsia">HTML</span>
+          <span class="text-white"> es la base</span>
+        </h2>
+        <p class="text-gray-400 max-w-xl mx-auto mb-8 text-lg leading-relaxed">
+          Lo más importante: <span class="text-neon-lilac font-700">entender cómo funcionan</span> las etiquetas, no solo memorizarlas.
+        </p>
+        <div class="flex flex-wrap justify-center gap-4 text-sm mb-6">
+          <span class="flex items-center gap-2 text-green-400"><span>✓</span> La base de toda web</span>
+          <span class="flex items-center gap-2 text-blue-400"><span>✓</span> Fácil de aprender</span>
+          <span class="flex items-center gap-2 text-neon-lilac"><span>✓</span> Necesario para todo desarrollador</span>
+        </div>
+        <div class="inline-block px-8 py-3 rounded-lg font-display font-700 text-black" style="background: linear-gradient(135deg, #f000ff, #b300ff); box-shadow: 0 0 30px #f000ff55;">
+          ¡Ahora a practicar! 🔥
         </div>
       </div>
-    </div>
+    </section>
+
 
   </main>
 
+  <!-- ══════════════════════════════════════
+       VIDEO MODAL
+  ══════════════════════════════════════ -->
+  <div id="video-modal" role="dialog" aria-modal="true">
+    <div id="modal-box">
+
+      <!-- top bar -->
+      <div id="modal-topbar">
+        <span id="modal-tag">&lt;etiqueta/&gt;</span>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div id="modal-timer" style="font-family:'Space Mono',monospace;color:#b300ff;font-size:.78rem;">0:00</div>
+          <button id="modal-close" aria-label="Cerrar">✕</button>
+        </div>
+      </div>
+
+      <!-- progress -->
+      <div id="modal-progress-wrap"><div id="modal-progress-bar"></div></div>
+
+      <!-- "screen" — code animation + preview -->
+      <div id="modal-screen">
+        <div id="modal-code-area"><span id="modal-typed"></span><span class="cursor"></span></div>
+        <div id="modal-preview">
+          <span id="modal-preview-label">PREVIEW</span>
+          <div id="modal-preview-content"></div>
+        </div>
+      </div>
+
+      <!-- title + explanation -->
+      <div id="modal-bottom">
+        <div id="modal-title">Cargando…</div>
+        <div style="display:flex;align-items:center;gap:8px;" id="modal-loading-wrap">
+          <div class="spinner" id="modal-spinner"></div>
+        </div>
+      </div>
+      <div id="modal-explanation"></div>
+
+    </div>
+  </div>
+
   <!-- FOOTER -->
-  <footer class="relative z-10 text-center py-8 border-t border-neon-cyan/10 mt-10">
-    <p class="font-display text-xs text-white/20 tracking-widest uppercase">
-      Algoritmia · Fundamentos de CS ·
-      <span class="text-neon-cyan/40">[ END OF FILE ]</span>
-    </p>
+  <footer class="mt-16 border-t border-neon-purple/20 bg-dark-900/60">
+    <div class="max-w-5xl mx-auto px-4 py-10 flex flex-col md:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-2">
+        <span class="text-neon-fuchsia text-glow-fuchsia font-mono font-700">&lt;HTML/&gt;</span>
+        <span class="text-gray-600">Guía desde cero</span>
+      </div>
+      <p class="text-gray-600 text-sm font-mono">Hecho con 💜 para aprender desarrollo web</p>
+      <div class="flex gap-4">
+        <a href="#que-es"     class="nav-link">Inicio</a>
+        <a href="#etiquetas"  class="nav-link">Etiquetas</a>
+        <a href="#ejercicios" class="nav-link">Ejercicios</a>
+      </div>
+    </div>
   </footer>
 
-  <!-- ════════════════ JAVASCRIPT ════════════════ -->
   <script>
-    // ─── TABS ───────────────────────────────────────────────────────
-    function switchTab(id) {
-      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-      document.querySelectorAll('.tab-btn:not(.code-tab-btn)').forEach(b => b.classList.remove('active'));
-      document.getElementById('tab-' + id).classList.add('active');
-      event.currentTarget.classList.add('active');
-      if (id === 'visualizer') { generateArray(); }
-      if (id === 'codigo') { showCode('bubble', document.querySelector('.code-tab-btn')); }
+  /* ═══════════════════════════════════════════════════════
+     DEMO VIDEO MODAL — powered by Claude API
+     Genera en tiempo real una mini-demo animada de cada
+     etiqueta HTML: tipos el código → ves el resultado live.
+  ═══════════════════════════════════════════════════════ */
+
+  const modal        = document.getElementById('video-modal');
+  const modalTag     = document.getElementById('modal-tag');
+  const modalTitle   = document.getElementById('modal-title');
+  const modalTyped   = document.getElementById('modal-typed');
+  const modalExpl    = document.getElementById('modal-explanation');
+  const modalPrev    = document.getElementById('modal-preview-content');
+  const modalProg    = document.getElementById('modal-progress-bar');
+  const modalTimer   = document.getElementById('modal-timer');
+  const modalSpinner = document.getElementById('modal-spinner');
+  const modalClose   = document.getElementById('modal-close');
+
+  let timerInterval  = null;
+  let typingInterval = null;
+  let currentTopic   = null;
+  const demoCache    = {};
+
+  /* ── Close ── */
+  function closeModal() {
+    modal.classList.remove('open');
+    clearInterval(timerInterval);
+    clearInterval(typingInterval);
+    currentTopic = null;
+  }
+  modalClose.addEventListener('click', closeModal);
+  modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+  /* ── Open ── */
+  function openModal(topic, label) {
+    if (currentTopic === topic && modal.classList.contains('open')) return;
+    currentTopic = topic;
+
+    clearInterval(timerInterval);
+    clearInterval(typingInterval);
+    modalTag.textContent   = label;
+    modalTitle.textContent = 'Generando demo…';
+    modalTyped.textContent = '';
+    modalExpl.textContent  = '';
+    modalPrev.innerHTML    = '';
+    modalProg.style.width  = '0%';
+    modalTimer.textContent = '0:00';
+    modalSpinner.style.display = 'block';
+    modal.classList.add('open');
+
+    if (demoCache[topic]) {
+      runDemo(demoCache[topic]);
+    } else {
+      fetchDemo(topic, label);
     }
+  }
 
-    // ─── TERMINAL SIMULADA ──────────────────────────────────────────
-    function handleTerminalInput(e) {
-      if (e.key !== 'Enter') return;
-      const input = document.getElementById('terminal-input');
-      const out = document.getElementById('terminal-output');
-      const val = input.value.trim();
-      const num = parseFloat(val);
+  /* ── Fetch from Claude API ── */
+  async function fetchDemo(topic, label) {
+    const system = `Eres un tutor de HTML que genera mini-demos animadas en JSON.
+Responde SOLO con JSON válido. Sin markdown, sin backticks, sin texto adicional.
+Estructura exacta:
+{
+  "title": "Titulo corto max 8 palabras",
+  "explanation": "Explicacion clara en 2-3 oraciones simples para principiantes en español.",
+  "codeSteps": [
+    {"code": "fragmento de codigo HTML de este paso", "previewHtml": "HTML simple que muestra el resultado visual de este paso"}
+  ],
+  "finalPreview": "HTML final completo"
+}
+Usa 3 a 5 pasos progresivos. El codigo debe verse como si alguien lo estuviera escribiendo en vivo. Todo en español.`;
 
-      const line = (html) => {
-        const d = document.createElement('div');
-        d.innerHTML = html;
-        out.appendChild(d);
-        out.scrollTop = out.scrollHeight;
-      };
+    const user = `Genera una mini-demo animada paso a paso para enseñar: "${label}" (id: ${topic}).
+Muestra como funciona esta etiqueta o concepto HTML escribiendo el codigo progresivamente.
+Usa ejemplos reales y practicos en español.`;
 
-      line(`<span style="color:#00f5ff">$ </span><span style="color:#fff">${val}</span>`);
+    try {
+      const res  = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 1000,
+          system,
+          messages: [{ role: 'user', content: user }]
+        })
+      });
+      const data = await res.json();
+      const raw  = (data.content || []).map(b => b.text || '').join('');
+      const clean = raw.replace(/```json|```/g, '').trim();
+      const demo  = JSON.parse(clean);
+      demoCache[topic] = demo;
+      runDemo(demo);
+    } catch(err) {
+      console.error(err);
+      modalSpinner.style.display = 'none';
+      modalTitle.textContent  = '⚠ Error al generar';
+      modalExpl.textContent   = 'No se pudo conectar a la API. Revisa tu conexión.';
+    }
+  }
 
-      if (val === '') {
-        line('<span style="color:#ff2d78">⚠ Error: ingresa un número</span>');
-      } else if (isNaN(num)) {
-        line(`<span style="color:#ff2d78">⚠ "${val}" no es un número válido</span>`);
-      } else {
-        const resultado = num * 2;
-        setTimeout(() => line(`<span style="color:#ffe600">leer número → ${num}</span>`), 100);
-        setTimeout(() => line(`<span style="color:#39ff14">mostrar número × 2 → <strong>${resultado}</strong></span>`), 350);
+  /* ── Run animation ── */
+  function runDemo(demo) {
+    modalSpinner.style.display = 'none';
+    modalTitle.textContent = demo.title || 'Demo';
+    modalExpl.innerHTML    = demo.explanation || '';
+
+    const steps   = Array.isArray(demo.codeSteps) ? demo.codeSteps : [];
+    const totalMs = 50000;
+    let elapsed   = 0;
+
+    clearInterval(timerInterval);
+    timerInterval = setInterval(() => {
+      elapsed += 100;
+      const s = Math.floor(elapsed / 1000);
+      modalTimer.textContent = `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;
+      modalProg.style.width  = Math.min((elapsed / totalMs) * 100, 100) + '%';
+      if (elapsed >= totalMs) clearInterval(timerInterval);
+    }, 100);
+
+    function runStep(idx) {
+      if (idx >= steps.length) {
+        if (demo.finalPreview) renderPreview(demo.finalPreview);
+        return;
       }
-      input.value = '';
+      const { code, previewHtml } = steps[idx];
+      const toType = (idx === 0 ? '' : '\n') + (code || '');
+      typeCode(toType, () => {
+        if (previewHtml) renderPreview(previewHtml);
+        setTimeout(() => runStep(idx + 1), 900);
+      });
+    }
+    runStep(0);
+  }
+
+  /* ── Type animation ── */
+  function typeCode(text, onDone) {
+    clearInterval(typingInterval);
+    let i = 0;
+    const speed = Math.max(15, Math.floor(700 / Math.max(text.length, 1)));
+    typingInterval = setInterval(() => {
+      if (i < text.length) {
+        modalTyped.textContent += text[i++];
+      } else {
+        clearInterval(typingInterval);
+        if (onDone) onDone();
+      }
+    }, speed);
+  }
+
+  /* ── Render preview ── */
+  function renderPreview(html) {
+    const safe = (html || '').replace(/<script[\s\S]*?<\/script>/gi,'').replace(/on\w+="[^"]*"/gi,'');
+    modalPrev.innerHTML = safe;
+  }
+
+  /* ── Bind clicks ── */
+  document.querySelectorAll('[data-topic]').forEach(card => {
+    card.addEventListener('click', e => {
+      if (e.target.tagName === 'A' || e.target.closest('a')) return;
+      openModal(card.dataset.topic, card.dataset.label || card.dataset.topic);
+    });
+  });
+  </script>
+
+
+    <style>
+    /* ── GAME STYLES ── */
+    .g-option {
+      padding: 10px 14px; border-radius: 10px; cursor: pointer; font-size: .82rem;
+      font-family: 'Space Mono', monospace; text-align: center;
+      border: 1px solid #b300ff44; background: #0d0020; color: #d47eff;
+      transition: all .2s; user-select: none;
+    }
+    .g-option:hover  { border-color: #f000ff; background: #1e0045; color: #fff; }
+    .g-option.correct { border-color: #00ff88 !important; background: #002200 !important; color: #00ff88 !important; }
+    .g-option.wrong   { border-color: #ff0040 !important; background: #1a000a !important; color: #ff4466 !important; }
+    .g-option.disabled { pointer-events: none; opacity: .5; }
+
+    /* drag pieces */
+    .drag-piece {
+      padding: 8px 14px; border-radius: 8px; cursor: grab;
+      font-family: 'Space Mono', monospace; font-size: .75rem; color: #c87eff;
+      background: #140030; border: 1px solid #b300ff66; user-select: none;
+      transition: all .2s;
+    }
+    .drag-piece:hover  { border-color: #f000ff; background: #1e0045; }
+    .drag-piece.placed { opacity: .4; pointer-events: none; }
+    .drag-piece.dragging { opacity: .5; transform: scale(.95); }
+
+    .drop-slot {
+      padding: 8px 14px; border-radius: 8px; min-height: 36px;
+      font-family: 'Space Mono', monospace; font-size: .75rem; color: #c87eff;
+      background: #1e004566; border: 1px dashed #b300ff44; cursor: pointer;
+      transition: all .2s; display: flex; align-items: center; gap: 8px;
+    }
+    .drop-slot.filled { background: #140030; border: 1px solid #b300ff66; border-style: solid; }
+    .drop-slot.over   { border-color: #f000ff; background: #2a005566; }
+
+    /* score dot */
+    .q-dot {
+      width: 10px; height: 10px; border-radius: 50%;
+      background: #b300ff33; border: 1px solid #b300ff44; transition: background .3s;
+    }
+    .q-dot.done-ok  { background: #00ff88; border-color: #00ff88; }
+    .q-dot.done-err { background: #ff0040; border-color: #ff0040; }
+    .q-dot.current  { background: #f000ff; border-color: #f000ff; box-shadow: 0 0 6px #f000ff; }
+
+    /* live score flash */
+    @keyframes scoreFlash { 0%{transform:scale(1)} 50%{transform:scale(1.3)} 100%{transform:scale(1)} }
+    .score-flash { animation: scoreFlash .4s ease; }
+
+    /* g1 editor line numbers feel */
+    #g1-editor { tab-size: 2; }
+    </style>
+
+  <!-- ══════════════════════════════════════
+       PANEL DE JUEGOS (overlay fullscreen)
+  ══════════════════════════════════════ -->
+  <div id="games-panel" style="display:none;position:fixed;inset:0;z-index:8000;overflow-y:auto;background:#06000d;">
+    <!-- Panel navbar -->
+    <div style="position:sticky;top:0;z-index:10;background:rgba(6,0,13,.9);border-bottom:1px solid #b300ff33;backdrop-filter:blur(14px);">
+      <div style="max-width:1100px;margin:0 auto;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span style="font-size:1.4rem;">🎮</span>
+          <span style="font-family:Syne,sans-serif;font-weight:800;color:#fff;font-size:1.1rem;">Juegos para practicar</span>
+          <span style="font-family:Space Mono,monospace;font-size:.7rem;color:#b300ff;border:1px solid #b300ff44;padding:2px 8px;border-radius:4px;">5 juegos</span>
+        </div>
+        <button onclick="closeGamesPanel()" style="display:flex;align-items:center;gap:8px;background:#1e004588;border:1px solid #b300ff44;color:#d47eff;padding:8px 16px;border-radius:8px;cursor:pointer;font-family:Space Mono,monospace;font-size:.8rem;transition:all .2s;" onmouseover="this.style.borderColor='#f000ff';this.style.color='#f000ff'" onmouseout="this.style.borderColor='#b300ff44';this.style.color='#d47eff'">
+          ← Volver a la guía
+        </button>
+      </div>
+    </div>
+    <!-- Panel content -->
+    <div style="max-width:1100px;margin:0 auto;padding:40px 20px;">
+      
+      <div class="flex items-center gap-3 mb-2">
+        <span class="text-3xl">🎮</span>
+        <h2 class="section-title text-3xl md:text-4xl text-white">Juegos para practicar</h2>
+      </div>
+      <p class="text-gray-500 mb-2 font-mono text-sm">Aprende HTML jugando — cada juego enseña algo diferente</p>
+      <div class="h-1 w-32 rounded mb-10" style="background: linear-gradient(to right, #f000ff, #b300ff44);"></div>
+
+      <!-- SCOREBOARD -->
+      <div class="card-neon rounded-2xl p-5 mb-8 flex flex-wrap items-center justify-between gap-4" style="border-color:#f000ff66;background:linear-gradient(135deg,#1e004488,#06000dcc);">
+        <div class="flex items-center gap-3">
+          <span class="text-2xl">🏆</span>
+          <div>
+            <p class="text-gray-500 text-xs font-mono">PUNTUACIÓN TOTAL</p>
+            <p class="text-neon-fuchsia font-mono font-700 text-2xl text-glow-fuchsia" id="total-score">0 pts</p>
+          </div>
+        </div>
+        <div class="flex gap-6 text-center">
+          <div><p class="text-gray-500 text-xs font-mono">JUEGOS</p><p class="text-white font-700 font-mono" id="games-played">0/5</p></div>
+          <div><p class="text-gray-500 text-xs font-mono">RACHA</p><p class="text-yellow-400 font-700 font-mono" id="streak-count">🔥 0</p></div>
+        </div>
+      </div>
+
+      <div class="space-y-8">
+
+        <!-- ══ JUEGO 1: EDITOR EN VIVO ══ -->
+        <div class="card-neon rounded-2xl overflow-hidden" style="border-color:#00ff8844;" id="game1-card">
+          <div class="p-5 border-b border-neon-purple/20 flex items-center justify-between flex-wrap gap-3">
+            <div class="flex items-center gap-3">
+              <span class="pill pill-green">Juego 1</span>
+              <h3 class="font-display font-700 text-white text-lg">⌨️ Editor en vivo</h3>
+            </div>
+            <div class="flex items-center gap-3">
+              <span class="text-gray-500 text-sm font-mono">Escribe HTML → ve el resultado</span>
+              <span class="tag-badge" id="g1-score">0 pts</span>
+            </div>
+          </div>
+          <div class="p-5">
+            <p class="text-gray-400 text-sm mb-4">👇 Escribe HTML en el editor. El preview se actualiza en tiempo real. Completa el <span class="text-neon-lilac">reto</span> para ganar puntos.</p>
+
+            <!-- Challenge bar -->
+            <div class="rounded-xl p-4 mb-4 flex items-start gap-3" style="background:#001a0a;border:1px solid #00ff6633;">
+              <span class="text-2xl mt-1">🎯</span>
+              <div>
+                <p class="text-green-400 font-700 text-sm mb-1">RETO ACTUAL:</p>
+                <p class="text-gray-300 text-sm" id="g1-challenge">Carga el primer reto…</p>
+                <div class="flex gap-2 mt-2 flex-wrap" id="g1-hints"></div>
+              </div>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-4">
+              <!-- Editor -->
+              <div>
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-gray-500 text-xs font-mono">📝 EDITOR</span>
+                  <button onclick="g1Reset()" class="text-xs text-gray-600 hover:text-neon-fuchsia font-mono transition-colors">↺ limpiar</button>
+                </div>
+                <textarea id="g1-editor"
+                  class="w-full rounded-lg p-4 font-mono text-sm resize-none focus:outline-none"
+                  style="background:#000;color:#c87eff;border:1px solid #b300ff44;min-height:180px;caret-color:#f000ff;"
+                  spellcheck="false"
+                  placeholder="Escribe tu HTML aquí…"></textarea>
+                <div class="flex gap-2 mt-2">
+                  <button onclick="g1Check()" class="flex-1 py-2 rounded-lg font-display font-700 text-sm text-black transition-all" style="background:linear-gradient(135deg,#00ff88,#00cc66);">✓ Verificar reto</button>
+                  <button onclick="g1Next()" class="px-4 py-2 rounded-lg font-mono text-xs text-neon-lilac border border-neon-purple/40 hover:border-neon-fuchsia transition-colors">Siguiente →</button>
+                </div>
+              </div>
+              <!-- Preview -->
+              <div>
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-gray-500 text-xs font-mono">🖥 PREVIEW</span>
+                  <span class="text-xs font-mono" id="g1-status" style="color:#00ff88;">listo</span>
+                </div>
+                <div id="g1-preview" class="rounded-lg overflow-hidden" style="border:1px solid #b300ff33;min-height:180px;background:#fff;">
+                  <iframe id="g1-frame" style="width:100%;min-height:180px;border:none;background:#fff;" title="Preview HTML"></iframe>
+                </div>
+              </div>
+            </div>
+            <div id="g1-feedback" class="mt-3 rounded-lg p-3 text-sm font-mono hidden"></div>
+          </div>
+        </div>
+
+        <!-- ══ JUEGO 2: QUIZ DE ETIQUETAS ══ -->
+        <div class="card-neon rounded-2xl overflow-hidden" style="border-color:#b300ff88;" id="game2-card">
+          <div class="p-5 border-b border-neon-purple/20 flex items-center justify-between flex-wrap gap-3">
+            <div class="flex items-center gap-3">
+              <span class="pill pill-yellow">Juego 2</span>
+              <h3 class="font-display font-700 text-white text-lg">🧠 Quiz de etiquetas</h3>
+            </div>
+            <div class="flex items-center gap-3">
+              <span class="text-gray-500 text-sm font-mono">¿Qué etiqueta es esta?</span>
+              <span class="tag-badge" id="g2-score">0 pts</span>
+            </div>
+          </div>
+          <div class="p-5">
+            <div class="flex items-center justify-between mb-5">
+              <div class="flex gap-2" id="g2-dots"></div>
+              <span class="font-mono text-sm text-gray-500" id="g2-counter">1 / 8</span>
+            </div>
+
+            <!-- Question -->
+            <div class="rounded-2xl p-6 mb-5 text-center" style="background:#000;border:1px solid #b300ff44;">
+              <p class="text-gray-500 text-xs font-mono mb-3">¿Para qué sirve esta etiqueta?</p>
+              <code id="g2-tag" class="text-3xl font-mono text-neon-fuchsia text-glow-fuchsia" style="font-size:2.5rem;">&lt;p&gt;</code>
+            </div>
+
+            <!-- Options -->
+            <div class="grid grid-cols-2 gap-3 mb-4" id="g2-options"></div>
+
+            <div id="g2-feedback" class="rounded-lg p-3 text-sm font-mono text-center hidden"></div>
+
+            <div class="flex justify-between items-center mt-4">
+              <div class="flex gap-2">
+                <span class="text-gray-600 text-xs font-mono">✅ <span id="g2-correct">0</span> correctas</span>
+                <span class="text-gray-600 text-xs font-mono">❌ <span id="g2-wrong">0</span> errores</span>
+              </div>
+              <button onclick="g2Start()" class="px-4 py-2 rounded-lg font-mono text-xs text-neon-lilac border border-neon-purple/40 hover:border-neon-fuchsia transition-colors">↺ Reiniciar</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══ JUEGO 3: ARRASTRAR Y SOLTAR ══ -->
+        <div class="card-neon rounded-2xl overflow-hidden" style="border-color:#ff8c0088;" id="game3-card">
+          <div class="p-5 border-b border-neon-purple/20 flex items-center justify-between flex-wrap gap-3">
+            <div class="flex items-center gap-3">
+              <span class="pill" style="background:#1a0a00;border:1px solid #ff8c0044;color:#ff8c00;">Juego 3</span>
+              <h3 class="font-display font-700 text-white text-lg">🧩 Armá la estructura</h3>
+            </div>
+            <span class="tag-badge" id="g3-score">0 pts</span>
+          </div>
+          <div class="p-5">
+            <p class="text-gray-400 text-sm mb-2">👇 Arrastrá las etiquetas al orden correcto para construir una página HTML válida.</p>
+            <p id="g3-puzzle-title" class="text-neon-lilac font-mono text-xs mb-5">Puzzle 1/5: Estructura básica HTML</p>
+
+            <div class="grid md:grid-cols-2 gap-6">
+              <!-- Pieces bank -->
+              <div>
+                <p class="text-gray-500 text-xs font-mono mb-3">📦 PIEZAS DISPONIBLES</p>
+                <div id="g3-bank" class="min-h-32 rounded-xl p-3 flex flex-wrap gap-2 content-start" style="background:#0d0020;border:2px dashed #b300ff44;"></div>
+              </div>
+              <!-- Drop zone -->
+              <div>
+                <p class="text-gray-500 text-xs font-mono mb-3">🏗 TU ESTRUCTURA (arrastrá aquí en orden)</p>
+                <div id="g3-drop" class="min-h-32 rounded-xl p-3 flex flex-col gap-2" style="background:#0d0020;border:2px dashed #f000ff44;"></div>
+              </div>
+            </div>
+
+            <div id="g3-feedback" class="mt-4 rounded-lg p-3 text-sm font-mono text-center hidden"></div>
+            <div class="flex gap-3 mt-4">
+              <button onclick="g3Check()" class="flex-1 py-2 rounded-lg font-display font-700 text-sm text-black" style="background:linear-gradient(135deg,#f000ff,#b300ff);">✓ Verificar orden</button>
+              <button onclick="g3Start()" class="px-4 py-2 rounded-lg font-mono text-xs text-neon-lilac border border-neon-purple/40 hover:border-neon-fuchsia transition-colors">↺ Reiniciar</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══ JUEGO 4: COMPLETAR EL CÓDIGO ══ -->
+        <div class="card-neon rounded-2xl overflow-hidden" style="border-color:#00ccff66;" id="game4-card">
+          <div class="p-5 border-b border-neon-purple/20 flex items-center justify-between flex-wrap gap-3">
+            <div class="flex items-center gap-3">
+              <span class="pill" style="background:#001a1a;border:1px solid #00ccff44;color:#00ccff;">Juego 4</span>
+              <h3 class="font-display font-700 text-white text-lg">🔧 Completá el código</h3>
+            </div>
+            <span class="tag-badge" id="g4-score">0 pts</span>
+          </div>
+          <div class="p-5">
+            <p class="text-gray-400 text-sm mb-5">👇 Completá el código HTML con la palabra que falta. Escribe solo el texto que va en el <span style="color:#00ccff;">___</span>.</p>
+
+            <div id="g4-question" class="rounded-xl p-5 mb-5" style="background:#000;border:1px solid #00ccff33;">
+              <p class="text-gray-500 text-xs font-mono mb-3" id="g4-context">Contexto:</p>
+              <div class="font-mono text-sm leading-relaxed" id="g4-code-display"></div>
+            </div>
+
+            <div class="flex gap-3 mb-4">
+              <input id="g4-input" type="text"
+                class="flex-1 rounded-lg px-4 py-3 font-mono text-sm focus:outline-none"
+                style="background:#0d0020;color:#c87eff;border:1px solid #00ccff44;caret-color:#00ccff;"
+                placeholder="Escribe tu respuesta…"
+                onkeydown="if(event.key==='Enter')g4Check()">
+              <button onclick="g4Check()" class="px-6 py-3 rounded-lg font-display font-700 text-sm text-black" style="background:linear-gradient(135deg,#00ccff,#0088cc);">→</button>
+            </div>
+
+            <div id="g4-feedback" class="rounded-lg p-3 text-sm font-mono hidden mb-3"></div>
+
+            <div class="flex justify-between items-center">
+              <span class="text-gray-600 text-xs font-mono">Pregunta <span id="g4-num">1</span> de 8</span>
+              <div class="flex gap-1" id="g4-dots"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══ JUEGO 5: ADIVINA EL RESULTADO ══ -->
+        <div class="card-neon rounded-2xl overflow-hidden" style="border-color:#ff006688;" id="game5-card">
+          <div class="p-5 border-b border-neon-purple/20 flex items-center justify-between flex-wrap gap-3">
+            <div class="flex items-center gap-3">
+              <span class="pill pill-red">Juego 5</span>
+              <h3 class="font-display font-700 text-white text-lg">👁 Adivina el resultado</h3>
+            </div>
+            <span class="tag-badge" id="g5-score">0 pts</span>
+          </div>
+          <div class="p-5">
+            <p class="text-gray-400 text-sm mb-5">👇 Mirá el código HTML y elegí cuál es el resultado visual correcto.</p>
+
+            <!-- Code shown -->
+            <div class="rounded-xl p-5 mb-5" style="background:#000;border:1px solid #ff006633;">
+              <p class="text-gray-500 text-xs font-mono mb-3">CÓDIGO:</p>
+              <pre id="g5-code" class="rounded-lg" style="margin:0;padding:0;background:transparent;border:none;box-shadow:none;"><code id="g5-code-inner" style="color:#c87eff;font-size:.85rem;"></code></pre>
+            </div>
+
+            <!-- Options -->
+            <p class="text-gray-500 text-xs font-mono mb-3">¿CUÁL ES EL RESULTADO?</p>
+            <div class="grid grid-cols-2 gap-3 mb-4" id="g5-options"></div>
+
+            <div id="g5-feedback" class="rounded-lg p-3 text-sm font-mono text-center hidden mb-3"></div>
+
+            <div class="flex justify-between items-center">
+              <span class="text-gray-600 text-xs font-mono">Ronda <span id="g5-num">1</span> de 6</span>
+              <button onclick="g5Start()" class="text-xs text-gray-600 hover:text-neon-fuchsia font-mono transition-colors">↺ Reiniciar</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    
+    </div>
+  </div>
+
+    <script>
+    /* ════════════════════════════════════════
+       GAME ENGINE
+    ════════════════════════════════════════ */
+    let totalScore = 0;
+    let gamesCompleted = new Set();
+    let streak = 0;
+
+    function addScore(gameId, pts) {
+      totalScore += pts;
+      streak++;
+      document.getElementById('total-score').textContent = totalScore + ' pts';
+      document.getElementById('total-score').classList.add('score-flash');
+      setTimeout(() => document.getElementById('total-score').classList.remove('score-flash'), 400);
+      document.getElementById('streak-count').textContent = '🔥 ' + streak;
+      gamesCompleted.add(gameId);
+      document.getElementById('games-played').textContent = gamesCompleted.size + '/5';
     }
 
-    // ─── CODE SNIPPETS ──────────────────────────────────────────────
-    const codeSnippets = {
-      bubble: `<span class="cm"># ── Bubble Sort ────────────────────</span>
-<span class="kw">def</span> <span class="fn">bubble_sort</span>(arr):
-    n = <span class="fn">len</span>(arr)
-    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(n):
-        <span class="kw">for</span> j <span class="kw">in</span> <span class="fn">range</span>(<span class="num">0</span>, n-i-<span class="num">1</span>):
-            <span class="kw">if</span> arr[j] > arr[j+<span class="num">1</span>]:
-                arr[j], arr[j+<span class="num">1</span>] = arr[j+<span class="num">1</span>], arr[j]
-    <span class="kw">return</span> arr
+    /* ════════════════════════════════════════
+       JUEGO 1 — EDITOR EN VIVO
+    ════════════════════════════════════════ */
+    const g1Challenges = [
+      { text: 'Escribe un <h1> con el texto "Mi primera web"', check: s => /<h1[^>]*>.*Mi primera web.*<\/h1>/i.test(s), hint: ['<h1>', '</h1>'] },
+      { text: 'Agrega un <p> con cualquier texto de descripción', check: s => /<p[^>]*>.+<\/p>/i.test(s), hint: ['<p>', '</p>'] },
+      { text: 'Crea un enlace <a> que apunte a https://google.com', check: s => /<a\s+href=["']https?:\/\/google\.com["']/i.test(s), hint: ['href=', '"https://google.com"'] },
+      { text: 'Inserta una etiqueta <img> con un atributo alt', check: s => /<img[^>]+alt=["'][^"']+["'][^>]*>/i.test(s), hint: ['<img', 'alt="..."'] },
+      { text: 'Crea una lista <ul> con al menos 2 elementos <li>', check: s => { const m = s.match(/<li[^>]*>/gi); return /<ul/i.test(s) && m && m.length >= 2; }, hint: ['<ul>', '<li>', '</ul>'] },
+      { text: 'Escribe un <button> con cualquier texto', check: s => /<button[^>]*>.+<\/button>/i.test(s), hint: ['<button>', '</button>'] },
+      { text: 'Crea un <form> con un <input type="text"> y un <button>', check: s => /<form/i.test(s) && /<input/i.test(s) && /<button/i.test(s), hint: ['<form>', '<input>', '<button>'] },
+    ];
+    let g1Idx = 0, g1Points = 0;
 
-<span class="cm"># Ejemplo:</span>
-nums = [<span class="num">5</span>, <span class="num">3</span>, <span class="num">8</span>, <span class="num">1</span>, <span class="num">9</span>, <span class="num">2</span>]
-<span class="fn">print</span>(<span class="fn">bubble_sort</span>(nums))
-<span class="cm"># → [1, 2, 3, 5, 8, 9]</span>`,
-
-      selection: `<span class="cm"># ── Selection Sort ─────────────────</span>
-<span class="kw">def</span> <span class="fn">selection_sort</span>(arr):
-    n = <span class="fn">len</span>(arr)
-    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(n):
-        min_idx = i
-        <span class="kw">for</span> j <span class="kw">in</span> <span class="fn">range</span>(i+<span class="num">1</span>, n):
-            <span class="kw">if</span> arr[j] < arr[min_idx]:
-                min_idx = j
-        arr[i], arr[min_idx] = arr[min_idx], arr[i]
-    <span class="kw">return</span> arr`,
-
-      insertion: `<span class="cm"># ── Insertion Sort ─────────────────</span>
-<span class="kw">def</span> <span class="fn">insertion_sort</span>(arr):
-    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="num">1</span>, <span class="fn">len</span>(arr)):
-        key = arr[i]
-        j = i - <span class="num">1</span>
-        <span class="kw">while</span> j >= <span class="num">0</span> <span class="kw">and</span> arr[j] > key:
-            arr[j+<span class="num">1</span>] = arr[j]
-            j -= <span class="num">1</span>
-        arr[j+<span class="num">1</span>] = key
-    <span class="kw">return</span> arr`,
-
-      merge: `<span class="cm"># ── Merge Sort ─────────────────────</span>
-<span class="kw">def</span> <span class="fn">merge_sort</span>(arr):
-    <span class="kw">if</span> <span class="fn">len</span>(arr) <= <span class="num">1</span>:
-        <span class="kw">return</span> arr
-    mid = <span class="fn">len</span>(arr) // <span class="num">2</span>
-    left  = <span class="fn">merge_sort</span>(arr[:mid])
-    right = <span class="fn">merge_sort</span>(arr[mid:])
-    <span class="kw">return</span> <span class="fn">merge</span>(left, right)
-
-<span class="kw">def</span> <span class="fn">merge</span>(left, right):
-    result, i, j = [], <span class="num">0</span>, <span class="num">0</span>
-    <span class="kw">while</span> i < <span class="fn">len</span>(left) <span class="kw">and</span> j < <span class="fn">len</span>(right):
-        <span class="kw">if</span> left[i] <= right[j]:
-            result.<span class="fn">append</span>(left[i]); i += <span class="num">1</span>
-        <span class="kw">else</span>:
-            result.<span class="fn">append</span>(right[j]); j += <span class="num">1</span>
-    <span class="kw">return</span> result + left[i:] + right[j:]`,
-
-      quick: `<span class="cm"># ── Quick Sort ─────────────────────</span>
-<span class="kw">def</span> <span class="fn">quick_sort</span>(arr):
-    <span class="kw">if</span> <span class="fn">len</span>(arr) <= <span class="num">1</span>:
-        <span class="kw">return</span> arr
-    pivot = arr[<span class="fn">len</span>(arr) // <span class="num">2</span>]
-    left   = [x <span class="kw">for</span> x <span class="kw">in</span> arr <span class="kw">if</span> x < pivot]
-    middle = [x <span class="kw">for</span> x <span class="kw">in</span> arr <span class="kw">if</span> x == pivot]
-    right  = [x <span class="kw">for</span> x <span class="kw">in</span> arr <span class="kw">if</span> x > pivot]
-    <span class="kw">return</span> <span class="fn">quick_sort</span>(left) + middle + <span class="fn">quick_sort</span>(right)`,
-
-      consola: `<span class="cm"># ── Bubble Sort en Consola ──────────</span>
-numeros = []
-
-n = <span class="fn">int</span>(<span class="fn">input</span>(<span class="str">"¿Cuántos números quieres ingresar? "</span>))
-
-<span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(n):
-    num = <span class="fn">int</span>(<span class="fn">input</span>(<span class="str">"Ingresa un número: "</span>))
-    numeros.<span class="fn">append</span>(num)
-
-<span class="cm"># ── Ordenamiento Burbuja ────────────</span>
-<span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="fn">len</span>(numeros)):
-    <span class="kw">for</span> j <span class="kw">in</span> <span class="fn">range</span>(<span class="num">0</span>, <span class="fn">len</span>(numeros)-i-<span class="num">1</span>):
-        <span class="kw">if</span> numeros[j] > numeros[j+<span class="num">1</span>]:
-            numeros[j], numeros[j+<span class="num">1</span>] = numeros[j+<span class="num">1</span>], numeros[j]
-
-<span class="fn">print</span>(<span class="str">"Lista ordenada:"</span>, numeros)`
-    };
-
-    function showCode(name, btn) {
-      document.getElementById('code-display').innerHTML = codeSnippets[name] || '';
-      document.querySelectorAll('.code-tab-btn').forEach(b => b.classList.remove('active'));
-      if (btn) btn.classList.add('active');
+    function g1Init() {
+      const ch = g1Challenges[g1Idx];
+      document.getElementById('g1-challenge').textContent = ch.text;
+      const hEl = document.getElementById('g1-hints');
+      hEl.innerHTML = ch.hint.map(h => `<span class="tag-badge">${h}</span>`).join('');
+      document.getElementById('g1-feedback').classList.add('hidden');
+      document.getElementById('g1-status').textContent = 'listo';
+      document.getElementById('g1-status').style.color = '#00ff88';
     }
 
-    // ─── VISUALIZER ─────────────────────────────────────────────────
-    let currentArray = [];
-    let isSorting = false;
-    let comps = 0, swaps = 0;
-
-    function randomArray(n) {
-      return Array.from({length: n}, () => Math.floor(Math.random() * 90) + 10);
+    function g1Reset() {
+      document.getElementById('g1-editor').value = '';
+      document.getElementById('g1-frame').srcdoc = '';
+      document.getElementById('g1-feedback').classList.add('hidden');
     }
 
-    function generateArray() {
-      if (isSorting) return;
-      const n = parseInt(document.getElementById('size-range').value);
-      currentArray = randomArray(n);
-      comps = 0; swaps = 0;
-      document.getElementById('stat-comps').textContent = '0';
-      document.getElementById('stat-swaps').textContent = '0';
-      document.getElementById('stat-status').textContent = 'LISTO';
-      document.getElementById('stat-status').style.color = '#39ff14';
-      document.getElementById('step-desc').textContent = 'Pulsa START para comenzar la animación';
-      renderBars(currentArray, [], [], []);
+    function g1Check() {
+      const code = document.getElementById('g1-editor').value;
+      const ch = g1Challenges[g1Idx];
+      const fb = document.getElementById('g1-feedback');
+      fb.classList.remove('hidden');
+      if (ch.check(code)) {
+        const pts = 20;
+        g1Points += pts;
+        document.getElementById('g1-score').textContent = g1Points + ' pts';
+        addScore('g1', pts);
+        fb.style.background = '#002200'; fb.style.border = '1px solid #00ff6644'; fb.style.color = '#00ff88';
+        fb.textContent = '✅ ¡Correcto! +' + pts + ' pts — ' + (g1Idx < g1Challenges.length - 1 ? 'pasa al siguiente reto' : '¡completaste todos los retos!');
+        if (g1Idx < g1Challenges.length - 1) { setTimeout(g1Next, 1400); }
+      } else {
+        streak = Math.max(0, streak - 1);
+        document.getElementById('streak-count').textContent = '🔥 ' + streak;
+        fb.style.background = '#1a000a'; fb.style.border = '1px solid #ff004444'; fb.style.color = '#ff6677';
+        fb.textContent = '❌ Revisa tu código — pista: usa ' + ch.hint.join(', ');
+      }
     }
 
-    function renderBars(arr, comparing=[], swapping=[], sorted=[]) {
-      const container = document.getElementById('bars-container');
-      const maxVal = Math.max(...arr);
-      const containerH = 180;
-      container.innerHTML = '';
-      arr.forEach((val, i) => {
-        const bar = document.createElement('div');
-        const h = Math.max(8, Math.floor((val / maxVal) * containerH));
-        bar.className = 'sort-bar';
-        bar.style.height = h + 'px';
-        bar.style.flex = '1';
-        bar.style.maxWidth = '40px';
-        bar.style.borderRadius = '3px 3px 0 0';
-        if (sorted.includes(i)) {
-          bar.style.background = 'rgba(57,255,20,0.75)';
-          bar.style.boxShadow = '0 0 8px #39ff1488';
-        } else if (swapping.includes(i)) {
-          bar.style.background = 'rgba(255,45,120,0.85)';
-          bar.style.boxShadow = '0 0 12px #ff2d78aa';
-        } else if (comparing.includes(i)) {
-          bar.style.background = 'rgba(0,245,255,0.85)';
-          bar.style.boxShadow = '0 0 12px #00f5ffaa';
-        } else {
-          bar.style.background = 'rgba(255,255,255,0.18)';
-        }
-        container.appendChild(bar);
+    function g1Next() {
+      g1Idx = (g1Idx + 1) % g1Challenges.length;
+      g1Init();
+      document.getElementById('g1-editor').value = '';
+      document.getElementById('g1-frame').srcdoc = '';
+    }
+
+    // Live preview
+    document.getElementById('g1-editor').addEventListener('input', function() {
+      const frame = document.getElementById('g1-frame');
+      try {
+        frame.srcdoc = this.value;
+        document.getElementById('g1-status').textContent = '●  live';
+        document.getElementById('g1-status').style.color = '#f000ff';
+      } catch(e) {}
+    });
+
+    g1Init();
+
+    /* ════════════════════════════════════════
+       JUEGO 2 — QUIZ DE ETIQUETAS
+    ════════════════════════════════════════ */
+    const g2Questions = [
+      { tag: '<h1>', correct: 'Título principal de la página', options: ['Título principal de la página', 'Crear un hipervínculo', 'Insertar imagen', 'Párrafo de texto'] },
+      { tag: '<p>', correct: 'Párrafo de texto', options: ['Lista de elementos', 'Párrafo de texto', 'Botón clickeable', 'Contenedor genérico'] },
+      { tag: '<a>', correct: 'Crear un hipervínculo', options: ['Insertar audio', 'Crear un hipervínculo', 'Resaltar texto', 'Párrafo de texto'] },
+      { tag: '<img>', correct: 'Insertar una imagen', options: ['Insertar una imagen', 'Crear tabla', 'Párrafo de texto', 'Formulario'] },
+      { tag: '<ul>', correct: 'Lista sin orden (con viñetas)', options: ['Lista numerada', 'Lista sin orden (con viñetas)', 'Párrafo con puntos', 'Título de lista'] },
+      { tag: '<div>', correct: 'Contenedor genérico invisible', options: ['División de texto', 'Contenedor genérico invisible', 'Título pequeño', 'Enlace interno'] },
+      { tag: '<form>', correct: 'Formulario para ingresar datos', options: ['Formulario para ingresar datos', 'Marco de página', 'Tabla de datos', 'Sección semántica'] },
+      { tag: '<button>', correct: 'Botón clickeable', options: ['Enlace con estilo', 'Botón clickeable', 'Input de texto', 'Elemento de lista'] },
+    ];
+    let g2Idx = 0, g2Correct = 0, g2Wrong = 0, g2Points = 0;
+
+    function g2Start() {
+      g2Idx = 0; g2Correct = 0; g2Wrong = 0; g2Points = 0;
+      document.getElementById('g2-score').textContent = '0 pts';
+      document.getElementById('g2-correct').textContent = '0';
+      document.getElementById('g2-wrong').textContent = '0';
+      g2Render();
+    }
+
+    function g2Render() {
+      if (g2Idx >= g2Questions.length) {
+        document.getElementById('g2-tag').textContent = '🎉';
+        document.getElementById('g2-options').innerHTML = `<div class="col-span-2 text-center py-4"><p class="text-neon-fuchsia font-700 text-lg">¡Quiz completado! ${g2Points} pts</p><p class="text-gray-500 text-sm mt-1">${g2Correct} correctas / ${g2Wrong} errores</p></div>`;
+        document.getElementById('g2-feedback').classList.add('hidden');
+        return;
+      }
+      const q = g2Questions[g2Idx];
+      document.getElementById('g2-tag').textContent = q.tag;
+      document.getElementById('g2-counter').textContent = (g2Idx + 1) + ' / ' + g2Questions.length;
+      document.getElementById('g2-feedback').classList.add('hidden');
+
+      // dots
+      const dots = document.getElementById('g2-dots');
+      dots.innerHTML = g2Questions.map((_, i) =>
+        `<div class="q-dot ${i < g2Idx ? 'done-ok' : i === g2Idx ? 'current' : ''}"></div>`
+      ).join('');
+
+      // options shuffled
+      const opts = [...q.options].sort(() => Math.random() - .5);
+      document.getElementById('g2-options').innerHTML = opts.map(o =>
+        `<button class="g-option" onclick="g2Answer('${o.replace(/'/g,"\\'")}', this)">${o}</button>`
+      ).join('');
+    }
+
+    function g2Answer(answer, btn) {
+      const q = g2Questions[g2Idx];
+      const allBtns = document.querySelectorAll('#g2-options .g-option');
+      allBtns.forEach(b => b.classList.add('disabled'));
+      const fb = document.getElementById('g2-feedback');
+      fb.classList.remove('hidden');
+
+      if (answer === q.correct) {
+        btn.classList.add('correct');
+        g2Correct++; g2Points += 15;
+        document.getElementById('g2-correct').textContent = g2Correct;
+        document.getElementById('g2-score').textContent = g2Points + ' pts';
+        addScore('g2', 15);
+        fb.style.background = '#002200'; fb.style.border = '1px solid #00ff6644'; fb.style.color = '#00ff88';
+        fb.textContent = '✅ ¡Correcto! +15 pts';
+      } else {
+        btn.classList.add('wrong');
+        allBtns.forEach(b => { if (b.textContent === q.correct) b.classList.add('correct'); });
+        g2Wrong++; streak = Math.max(0, streak - 1);
+        document.getElementById('g2-wrong').textContent = g2Wrong;
+        document.getElementById('streak-count').textContent = '🔥 ' + streak;
+        fb.style.background = '#1a000a'; fb.style.border = '1px solid #ff004444'; fb.style.color = '#ff6677';
+        fb.textContent = '❌ Era: ' + q.correct;
+      }
+
+      const dots = document.getElementById('g2-dots');
+      const dotEls = dots.querySelectorAll('.q-dot');
+      if (dotEls[g2Idx]) dotEls[g2Idx].className = 'q-dot ' + (answer === q.correct ? 'done-ok' : 'done-err');
+
+      g2Idx++;
+      setTimeout(g2Render, 1200);
+    }
+
+    g2Start();
+
+    /* ════════════════════════════════════════
+       JUEGO 3 — ARRASTRAR Y SOLTAR
+    ════════════════════════════════════════ */
+    const g3Puzzles = [
+      {
+        name: 'Estructura básica HTML',
+        pieces: ['<!DOCTYPE html>', '<html>', '<head>', '<meta charset="UTF-8">', '</head>', '<body>', '<h1>Hola Mundo</h1>', '<p>Mi primera web</p>', '</body>', '</html>'],
+        answer: ['<!DOCTYPE html>', '<html>', '<head>', '<meta charset="UTF-8">', '</head>', '<body>', '<h1>Hola Mundo</h1>', '<p>Mi primera web</p>', '</body>', '</html>'],
+      },
+      {
+        name: 'Lista de elementos',
+        pieces: ['<ul>', '<li>Pan</li>', '<li>Leche</li>', '<li>Huevos</li>', '</ul>'],
+        answer: ['<ul>', '<li>Pan</li>', '<li>Leche</li>', '<li>Huevos</li>', '</ul>'],
+      },
+      {
+        name: 'Formulario de contacto',
+        pieces: ['<form>', '<input type="text" placeholder="Nombre">', '<input type="email" placeholder="Email">', '<button>Enviar</button>', '</form>'],
+        answer: ['<form>', '<input type="text" placeholder="Nombre">', '<input type="email" placeholder="Email">', '<button>Enviar</button>', '</form>'],
+      },
+      {
+        name: 'Enlace con imagen',
+        pieces: ['<a href="https://google.com">', '<img src="logo.png" alt="Logo">', '</a>'],
+        answer: ['<a href="https://google.com">', '<img src="logo.png" alt="Logo">', '</a>'],
+      },
+      {
+        name: 'Estructura semántica HTML5',
+        pieces: ['<header>', '<nav>', '</nav>', '</header>', '<main>', '<section>', '<h2>Título</h2>', '</section>', '</main>', '<footer>', '</footer>'],
+        answer: ['<header>', '<nav>', '</nav>', '</header>', '<main>', '<section>', '<h2>Título</h2>', '</section>', '</main>', '<footer>', '</footer>'],
+      },
+    ];
+    let g3Idx = 0, g3Placed = [], g3Points = 0, g3DragEl = null;
+
+    // Escape HTML characters so tags display as text
+    function g3Escape(str) {
+      return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    function g3Start() {
+      g3Idx = g3Idx % g3Puzzles.length;
+      g3Placed = [];
+      document.getElementById('g3-feedback').classList.add('hidden');
+      const puzzle = g3Puzzles[g3Idx];
+      const bank = document.getElementById('g3-bank');
+      const drop = document.getElementById('g3-drop');
+
+      // title
+      const titleEl = document.getElementById('g3-puzzle-title');
+      if (titleEl) titleEl.textContent = `Puzzle ${g3Idx + 1}/${g3Puzzles.length}: ${puzzle.name}`;
+
+      // shuffle pieces
+      const shuffled = [...puzzle.pieces].sort(() => Math.random() - .5);
+      bank.innerHTML = '';
+      shuffled.forEach((p, i) => {
+        const el = document.createElement('div');
+        el.className = 'drag-piece';
+        el.draggable = true;
+        el.dataset.val = p;
+        el.id = 'gp-' + i;
+        el.textContent = p;   // ← textContent: renders as plain text, never as HTML
+        bank.appendChild(el);
+      });
+
+      drop.innerHTML = '<p style="color:#b300ff33;font-size:.75rem;font-family:Space Mono,monospace;text-align:center;margin-top:16px;">Arrastrá las piezas aquí en orden…</p>';
+
+      // drag events
+      bank.querySelectorAll('.drag-piece').forEach(el => {
+        el.addEventListener('dragstart', e => { g3DragEl = el; el.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move'; });
+        el.addEventListener('dragend', () => el.classList.remove('dragging'));
+      });
+
+      drop.addEventListener('dragover', e => { e.preventDefault(); drop.style.borderColor = '#f000ff'; drop.style.background = '#2a005544'; });
+      drop.addEventListener('dragleave', () => { drop.style.borderColor = '#f000ff44'; drop.style.background = '#0d0020'; });
+      drop.addEventListener('drop', e => {
+        e.preventDefault();
+        drop.style.borderColor = '#f000ff44'; drop.style.background = '#0d0020';
+        if (!g3DragEl || g3DragEl.classList.contains('placed')) return;
+        const val = g3DragEl.dataset.val;
+        g3Placed.push(val);
+        g3DragEl.classList.add('placed');
+
+        // build slot safely with DOM methods — no innerHTML for user data
+        const slot = document.createElement('div');
+        slot.className = 'drop-slot filled';
+        slot.dataset.placedIdx = g3Placed.length - 1;
+
+        const numSpan = document.createElement('span');
+        numSpan.style.cssText = 'color:#f000ff;font-size:.7rem;flex-shrink:0;';
+        numSpan.textContent = g3Placed.length + '.';
+
+        const codeSpan = document.createElement('span');
+        codeSpan.style.cssText = 'font-family:Space Mono,monospace;flex:1;';
+        codeSpan.textContent = val;   // ← textContent again: safe
+
+        const rmBtn = document.createElement('button');
+        rmBtn.style.cssText = 'margin-left:auto;color:#ff0040;font-size:.7rem;background:none;border:none;cursor:pointer;flex-shrink:0;';
+        rmBtn.textContent = '✕';
+        rmBtn.addEventListener('click', () => g3RemoveSlot(slot, val));
+
+        slot.appendChild(numSpan);
+        slot.appendChild(codeSpan);
+        slot.appendChild(rmBtn);
+
+        if (drop.querySelector('p')) drop.innerHTML = '';
+        drop.appendChild(slot);
       });
     }
 
-    function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
-
-    async function startSort() {
-      if (isSorting) return;
-      const algo = document.getElementById('algo-select').value;
-      const speed = parseInt(document.getElementById('speed-select').value);
-      isSorting = true;
-      comps = 0; swaps = 0;
-      document.getElementById('start-btn').textContent = '⏳';
-      document.getElementById('stat-status').textContent = 'SORTING';
-      document.getElementById('stat-status').style.color = '#00f5ff';
-
-      const arr = [...currentArray];
-
-      const update = async (comparing, swapping, sorted, desc) => {
-        renderBars(arr, comparing, swapping, sorted);
-        document.getElementById('stat-comps').textContent = comps;
-        document.getElementById('stat-swaps').textContent = swaps;
-        if (desc) document.getElementById('step-desc').textContent = desc;
-        await sleep(speed);
-      };
-
-      if (algo === 'bubble') await animBubble(arr, update);
-      else if (algo === 'selection') await animSelection(arr, update);
-      else if (algo === 'insertion') await animInsertion(arr, update);
-      else if (algo === 'merge') await animMerge(arr, update);
-      else if (algo === 'quick') await animQuick(arr, 0, arr.length - 1, update, []);
-
-      renderBars(arr, [], [], arr.map((_, i) => i));
-      document.getElementById('stat-status').textContent = '✓ LISTO';
-      document.getElementById('stat-status').style.color = '#39ff14';
-      document.getElementById('step-desc').textContent = '🎉 Ordenamiento completado';
-      document.getElementById('start-btn').textContent = '▶ START';
-      currentArray = arr;
-      isSorting = false;
-    }
-
-    async function animBubble(arr, update) {
-      const n = arr.length;
-      const sorted = [];
-      for (let i = 0; i < n; i++) {
-        for (let j = 0; j < n - i - 1; j++) {
-          comps++;
-          await update([j, j+1], [], sorted, `Comparando arr[${j}]=${arr[j]} y arr[${j+1}]=${arr[j+1]}`);
-          if (arr[j] > arr[j+1]) {
-            [arr[j], arr[j+1]] = [arr[j+1], arr[j]];
-            swaps++;
-            await update([], [j, j+1], sorted, `⇄ Swap: ${arr[j]} ↔ ${arr[j+1]}`);
-          }
-        }
-        sorted.unshift(n - 1 - i);
+    function g3RemoveSlot(slotEl, val) {
+      const drop = document.getElementById('g3-drop');
+      const slots = Array.from(drop.querySelectorAll('.drop-slot'));
+      const idx = slots.indexOf(slotEl);
+      if (idx !== -1) g3Placed.splice(idx, 1);
+      slotEl.remove();
+      // re-enable source piece
+      document.querySelectorAll('.drag-piece').forEach(el => {
+        if (el.dataset.val === val && !g3Placed.includes(val)) el.classList.remove('placed');
+      });
+      // re-number remaining slots
+      drop.querySelectorAll('.drop-slot').forEach((el, i) => {
+        el.querySelector('span').textContent = (i + 1) + '.';
+      });
+      if (drop.querySelectorAll('.drop-slot').length === 0) {
+        drop.innerHTML = '<p style="color:#b300ff33;font-size:.75rem;font-family:Space Mono,monospace;text-align:center;margin-top:16px;">Arrastrá las piezas aquí en orden…</p>';
       }
     }
 
-    async function animSelection(arr, update) {
-      const n = arr.length;
-      const sorted = [];
-      for (let i = 0; i < n; i++) {
-        let minIdx = i;
-        for (let j = i + 1; j < n; j++) {
-          comps++;
-          await update([minIdx, j], [], sorted, `Buscando mínimo... arr[${j}]=${arr[j]} vs mínimo=${arr[minIdx]}`);
-          if (arr[j] < arr[minIdx]) minIdx = j;
-        }
-        if (minIdx !== i) {
-          [arr[i], arr[minIdx]] = [arr[minIdx], arr[i]];
-          swaps++;
-          await update([], [i, minIdx], sorted, `⇄ Colocando mínimo ${arr[i]} en posición ${i}`);
-        }
-        sorted.push(i);
+    function g3Check() {
+      const puzzle = g3Puzzles[g3Idx];
+      const fb = document.getElementById('g3-feedback');
+      fb.classList.remove('hidden');
+      if (g3Placed.length !== puzzle.answer.length) {
+        fb.style.background = '#1a000a'; fb.style.border = '1px solid #ff004444'; fb.style.color = '#ff6677';
+        fb.textContent = `❌ Faltan ${puzzle.answer.length - g3Placed.length} piezas más. Arrastrá todas las etiquetas.`;
+        return;
+      }
+      const ok = g3Placed.every((v, i) => v === puzzle.answer[i]);
+      if (ok) {
+        g3Points += 25; addScore('g3', 25);
+        document.getElementById('g3-score').textContent = g3Points + ' pts';
+        fb.style.background = '#002200'; fb.style.border = '1px solid #00ff6644'; fb.style.color = '#00ff88';
+        const nextIdx = (g3Idx + 1) % g3Puzzles.length;
+        fb.textContent = `✅ ¡Perfecto! +25 pts — Siguiente: "${g3Puzzles[nextIdx].name}"`;
+        g3Idx = nextIdx;
+        setTimeout(g3Start, 1800);
+      } else {
+        streak = Math.max(0, streak - 1);
+        document.getElementById('streak-count').textContent = '🔥 ' + streak;
+        fb.style.background = '#1a000a'; fb.style.border = '1px solid #ff004444'; fb.style.color = '#ff6677';
+        const firstWrong = g3Placed.findIndex((v, i) => v !== puzzle.answer[i]);
+        fb.textContent = `❌ Posición ${firstWrong + 1} está mal. Revisa el orden.`;
       }
     }
 
-    async function animInsertion(arr, update) {
-      const n = arr.length;
-      const sorted = [0];
-      for (let i = 1; i < n; i++) {
-        let key = arr[i];
-        let j = i - 1;
-        await update([i], [], sorted, `Insertando elemento ${key}`);
-        while (j >= 0 && arr[j] > key) {
-          comps++;
-          arr[j + 1] = arr[j];
-          swaps++;
-          await update([], [j, j+1], sorted, `Desplazando ${arr[j]} a la derecha`);
-          j--;
-        }
-        arr[j + 1] = key;
-        sorted.push(i);
-        await update([], [], sorted, `${key} insertado en posición ${j+1}`);
-      }
+    g3Start();
+
+    /* ════════════════════════════════════════
+       JUEGO 4 — COMPLETAR EL CÓDIGO
+    ════════════════════════════════════════ */
+    const g4Questions = [
+      { ctx: 'Para crear un título principal:', code: `<___>Mi Página</h1>`, blank: 'h1', hint: 'La etiqueta de título más importante' },
+      { ctx: 'Para crear un enlace a Google:', code: `<a ___="https://google.com">Ir</a>`, blank: 'href', hint: 'Atributo que indica la URL de destino' },
+      { ctx: 'Para insertar una imagen:', code: `<img src="foto.jpg" ___="Mi foto">`, blank: 'alt', hint: 'Atributo de accesibilidad para imágenes' },
+      { ctx: 'Para hacer una lista sin orden:', code: `<___>\n  <li>Manzana</li>\n  <li>Pera</li>\n</ul>`, blank: 'ul', hint: 'Unordered List — lista desordenada' },
+      { ctx: 'Para abrir enlace en pestaña nueva:', code: `<a href="url.com" target="___">Abrir</a>`, blank: '_blank', hint: 'Valor que abre en nueva pestaña' },
+      { ctx: 'Para un campo de texto en formulario:', code: `<input ___="text" placeholder="Nombre">`, blank: 'type', hint: 'Atributo que define el tipo de input' },
+      { ctx: 'Para una lista numerada:', code: `<___>\n  <li>Primero</li>\n  <li>Segundo</li>\n</ol>`, blank: 'ol', hint: 'Ordered List — lista ordenada' },
+      { ctx: 'Para agrupar elementos con CSS:', code: `<___  class="caja">\n  <p>Contenido</p>\n</div>`, blank: 'div', hint: 'Contenedor genérico sin semántica' },
+    ];
+    let g4Idx = 0, g4Points = 0, g4Results = [];
+
+    function g4Init() {
+      g4Idx = 0; g4Points = 0; g4Results = [];
+      document.getElementById('g4-score').textContent = '0 pts';
+      g4Render();
     }
 
-    async function animMerge(arr, update) {
-      const aux = [...arr];
-      async function mergeSort(lo, hi) {
-        if (lo >= hi) return;
-        const mid = Math.floor((lo + hi) / 2);
-        await mergeSort(lo, mid);
-        await mergeSort(mid + 1, hi);
-        let i = lo, j = mid + 1, k = lo;
-        const temp = [];
-        while (i <= mid && j <= hi) {
-          comps++;
-          await update([i, j], [], [], `Mezclando: arr[${i}]=${arr[i]} vs arr[${j}]=${arr[j]}`);
-          if (arr[i] <= arr[j]) temp.push(arr[i++]);
-          else temp.push(arr[j++]);
-        }
-        while (i <= mid) temp.push(arr[i++]);
-        while (j <= hi) temp.push(arr[j++]);
-        for (let x = 0; x < temp.length; x++) {
-          arr[lo + x] = temp[x];
-          swaps++;
-          await update([], [lo + x], [], `Escribiendo ${arr[lo+x]}`);
-        }
+    function g4Render() {
+      if (g4Idx >= g4Questions.length) {
+        document.getElementById('g4-code-display').innerHTML = `<p style="color:#f000ff;font-size:1.2rem;text-align:center;padding:16px;">🎉 ¡Completado! ${g4Points} pts</p>`;
+        document.getElementById('g4-context').textContent = 'Terminaste todos los ejercicios.';
+        document.getElementById('g4-input').style.display = 'none';
+        return;
       }
-      await mergeSort(0, arr.length - 1);
+      const q = g4Questions[g4Idx];
+      document.getElementById('g4-context').textContent = q.ctx;
+      document.getElementById('g4-num').textContent = g4Idx + 1;
+      document.getElementById('g4-input').value = '';
+      document.getElementById('g4-input').style.display = '';
+      document.getElementById('g4-feedback').classList.add('hidden');
+
+      // Highlight the blank
+      const highlighted = q.code.replace('___', '<span style="background:#b300ff33;color:#f000ff;padding:0 4px;border-radius:3px;border:1px dashed #f000ff;">___</span>');
+      document.getElementById('g4-code-display').innerHTML = highlighted;
+
+      // dots
+      const dots = document.getElementById('g4-dots');
+      dots.innerHTML = g4Questions.map((_, i) => {
+        const cls = i < g4Results.length ? (g4Results[i] ? 'done-ok' : 'done-err') : i === g4Idx ? 'current' : '';
+        return `<div class="q-dot ${cls}"></div>`;
+      }).join('');
     }
 
-    async function animQuick(arr, lo, hi, update, sorted) {
-      if (lo >= hi) { if (lo === hi) sorted.push(lo); return; }
-      const pivot = arr[Math.floor((lo + hi) / 2)];
-      await update([Math.floor((lo+hi)/2)], [], sorted, `Pivote elegido: ${pivot}`);
-      let i = lo, j = hi;
-      while (i <= j) {
-        while (arr[i] < pivot) { comps++; i++; }
-        while (arr[j] > pivot) { comps++; j--; }
-        if (i <= j) {
-          [arr[i], arr[j]] = [arr[j], arr[i]];
-          swaps++;
-          await update([], [i, j], sorted, `⇄ Swap arr[${i}]=${arr[i]} ↔ arr[${j}]=${arr[j]}`);
-          i++; j--;
-        }
+    function g4Check() {
+      const q = g4Questions[g4Idx];
+      const ans = document.getElementById('g4-input').value.trim();
+      const fb = document.getElementById('g4-feedback');
+      fb.classList.remove('hidden');
+
+      const ok = ans.toLowerCase() === q.blank.toLowerCase();
+      g4Results.push(ok);
+      if (ok) {
+        g4Points += 15; addScore('g4', 15);
+        document.getElementById('g4-score').textContent = g4Points + ' pts';
+        fb.style.background = '#002200'; fb.style.border = '1px solid #00ff6644'; fb.style.color = '#00ff88';
+        fb.textContent = '✅ ¡Correcto! +15 pts';
+      } else {
+        streak = Math.max(0, streak - 1);
+        document.getElementById('streak-count').textContent = '🔥 ' + streak;
+        fb.style.background = '#1a000a'; fb.style.border = '1px solid #ff004444'; fb.style.color = '#ff6677';
+        fb.textContent = `❌ Era "${q.blank}" — Pista: ${q.hint}`;
       }
-      sorted.push(j + 1);
-      if (lo < j) await animQuick(arr, lo, j, update, sorted);
-      if (i < hi) await animQuick(arr, i, hi, update, sorted);
+      g4Idx++;
+      setTimeout(g4Render, 1300);
     }
 
-    // ─── INIT ────────────────────────────────────────────────────────
-    window.onload = () => {
-      generateArray();
-      showCode('bubble', document.querySelector('.code-tab-btn'));
-    };
+    g4Init();
+
+    /* ════════════════════════════════════════
+       JUEGO 5 — ADIVINA EL RESULTADO
+    ════════════════════════════════════════ */
+    const g5Rounds = [
+      {
+        code: '<h1>Hola Mundo</h1>',
+        options: [
+          { html: '<h1 style="font-size:1.6rem;font-weight:bold;margin:4px 0;">Hola Mundo</h1>', label: 'Texto grande y en negrita', correct: true },
+          { html: '<p style="font-size:.85rem;margin:4px 0;">Hola Mundo</p>', label: 'Texto pequeño normal', correct: false },
+          { html: '<span style="color:blue;text-decoration:underline;cursor:pointer;">Hola Mundo</span>', label: 'Enlace azul subrayado', correct: false },
+          { html: '<input type="text" value="Hola Mundo" style="border:1px solid #ccc;padding:4px;">', label: 'Campo de texto editable', correct: false },
+        ]
+      },
+      {
+        code: '<ul>\n  <li>Pan</li>\n  <li>Leche</li>\n</ul>',
+        options: [
+          { html: '<ol style="margin:4px 0;padding-left:18px;"><li>Pan</li><li>Leche</li></ol>', label: 'Lista numerada 1. 2.', correct: false },
+          { html: '<ul style="margin:4px 0;padding-left:18px;"><li>Pan</li><li>Leche</li></ul>', label: 'Lista con viñetas •', correct: true },
+          { html: '<p style="margin:4px 0;">Pan | Leche</p>', label: 'Texto separado por |', correct: false },
+          { html: '<table><tr><td>Pan</td></tr><tr><td>Leche</td></tr></table>', label: 'Tabla de dos filas', correct: false },
+        ]
+      },
+      {
+        code: '<a href="url.com">Clic aquí</a>',
+        options: [
+          { html: '<button style="padding:4px 10px;border:1px solid #ccc;cursor:pointer;border-radius:3px;">Clic aquí</button>', label: 'Botón gris', correct: false },
+          { html: '<span style="color:blue;text-decoration:underline;cursor:pointer;">Clic aquí</span>', label: 'Texto azul subrayado (enlace)', correct: true },
+          { html: '<p style="font-weight:bold;">Clic aquí</p>', label: 'Texto en negrita', correct: false },
+          { html: '<input type="text" placeholder="Clic aquí">', label: 'Campo de texto', correct: false },
+        ]
+      },
+      {
+        code: '<input type="text"\n  placeholder="Tu nombre">',
+        options: [
+          { html: '<button style="padding:4px 10px;background:#eee;border-radius:3px;">Tu nombre</button>', label: 'Botón con texto', correct: false },
+          { html: '<p style="color:#999;font-style:italic;">Tu nombre</p>', label: 'Texto gris cursiva', correct: false },
+          { html: '<input type="text" placeholder="Tu nombre" style="border:1px solid #ccc;padding:5px;border-radius:3px;width:140px;">', label: 'Campo de texto vacío', correct: true },
+          { html: '<select><option>Tu nombre</option></select>', label: 'Menú desplegable', correct: false },
+        ]
+      },
+      {
+        code: '<button>Enviar</button>',
+        options: [
+          { html: '<span style="color:blue;text-decoration:underline;cursor:pointer;">Enviar</span>', label: 'Enlace azul', correct: false },
+          { html: '<button style="padding:5px 12px;border:1px solid #ccc;border-radius:3px;background:#f0f0f0;cursor:pointer;">Enviar</button>', label: 'Botón clickeable', correct: true },
+          { html: '<p style="margin:4px 0;">Enviar</p>', label: 'Texto plano', correct: false },
+          { html: '<input type="text" placeholder="Enviar">', label: 'Campo editable', correct: false },
+        ]
+      },
+      {
+        code: '<p>Aprendiendo <strong>HTML</strong> hoy</p>',
+        options: [
+          { html: '<p style="margin:4px 0;">Aprendiendo <em>HTML</em> hoy</p>', label: 'Texto con cursiva', correct: false },
+          { html: '<p style="margin:4px 0;font-weight:bold;">Aprendiendo HTML hoy</p>', label: 'Todo en negrita', correct: false },
+          { html: '<p style="margin:4px 0;">Aprendiendo <strong>HTML</strong> hoy</p>', label: '"HTML" en negrita', correct: true },
+          { html: '<p style="margin:4px 0;text-decoration:underline;">Aprendiendo HTML hoy</p>', label: 'Texto subrayado', correct: false },
+        ]
+      },
+    ];
+    let g5Idx = 0, g5Points = 0;
+
+    function g5Start() {
+      g5Idx = 0; g5Points = 0;
+      document.getElementById('g5-score').textContent = '0 pts';
+      g5Render();
+    }
+
+    function g5Render() {
+      if (g5Idx >= g5Rounds.length) {
+        document.getElementById('g5-code-inner').textContent = '🎉 ¡Completado!';
+        document.getElementById('g5-options').innerHTML = `<div class="col-span-2 text-center py-4"><p style="color:#f000ff;font-weight:700;font-size:1.1rem;">${g5Points} pts ganados</p></div>`;
+        return;
+      }
+      const r = g5Rounds[g5Idx];
+      document.getElementById('g5-code-inner').textContent = r.code;
+      document.getElementById('g5-num').textContent = g5Idx + 1;
+      document.getElementById('g5-feedback').classList.add('hidden');
+
+      const shuffled = [...r.options].sort(() => Math.random() - .5);
+      document.getElementById('g5-options').innerHTML = shuffled.map((o, i) =>
+        `<button class="g-option" onclick="g5Answer(${o.correct}, this, '${o.label.replace(/'/g,"\\'")}')">
+          <div class="mb-2 rounded" style="background:#fff;padding:8px;min-height:40px;font-size:.75rem;">${o.html}</div>
+          <div style="font-size:.7rem;color:#b0a0c8;">${o.label}</div>
+        </button>`
+      ).join('');
+    }
+
+    function g5Answer(correct, btn, label) {
+      const allBtns = document.querySelectorAll('#g5-options .g-option');
+      allBtns.forEach(b => b.classList.add('disabled'));
+      const fb = document.getElementById('g5-feedback');
+      fb.classList.remove('hidden');
+
+      if (correct) {
+        btn.classList.add('correct');
+        g5Points += 20; addScore('g5', 20);
+        document.getElementById('g5-score').textContent = g5Points + ' pts';
+        fb.style.background = '#002200'; fb.style.border = '1px solid #00ff6644'; fb.style.color = '#00ff88';
+        fb.textContent = '✅ ¡Correcto! +20 pts';
+      } else {
+        btn.classList.add('wrong');
+        allBtns.forEach(b => { if (b.textContent.includes(g5Rounds[g5Idx].options.find(o=>o.correct).label)) b.classList.add('correct'); });
+        streak = Math.max(0, streak-1);
+        document.getElementById('streak-count').textContent = '🔥 ' + streak;
+        fb.style.background = '#1a000a'; fb.style.border = '1px solid #ff004444'; fb.style.color = '#ff6677';
+        fb.textContent = '❌ Incorrecto — observa cómo se ve la respuesta verde';
+      }
+      g5Idx++;
+      setTimeout(g5Render, 1500);
+    }
+
+    g5Start();
+    </script>
+
+  <script>
+  function openGamesPanel() {
+    document.getElementById('games-panel').style.display = 'block';
+    document.body.style.overflow = 'hidden';
+    // re-init games visuals when panel opens
+    setTimeout(() => { if(typeof g2Start==='function') g2Start(); }, 50);
+  }
+  function closeGamesPanel() {
+    document.getElementById('games-panel').style.display = 'none';
+    document.body.style.overflow = '';
+  }
+  document.addEventListener('keydown', e => { if(e.key==='Escape' && document.getElementById('games-panel').style.display!=='none') closeGamesPanel(); });
   </script>
 </body>
-</html>

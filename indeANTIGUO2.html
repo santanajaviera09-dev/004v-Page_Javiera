@@ -1,0 +1,1214 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Algoritmia — Ordenamiento y Consola</title>
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600;700&display=swap" rel="stylesheet"/>
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            mono: ['"Share Tech Mono"', 'monospace'],
+            display: ['Orbitron', 'sans-serif'],
+            body: ['Rajdhani', 'sans-serif'],
+          },
+          colors: {
+            neon: {
+              cyan: '#00f5ff',
+              green: '#39ff14',
+              pink: '#ff2d78',
+              purple: '#bf5fff',
+              yellow: '#ffe600',
+            },
+            dark: {
+              950: '#020408',
+              900: '#050d14',
+              800: '#091a26',
+              700: '#0d2336',
+              600: '#112c44',
+            }
+          },
+          boxShadow: {
+            'neon-cyan': '0 0 10px #00f5ff, 0 0 30px #00f5ff55',
+            'neon-green': '0 0 10px #39ff14, 0 0 30px #39ff1455',
+            'neon-pink': '0 0 10px #ff2d78, 0 0 30px #ff2d7855',
+            'neon-purple': '0 0 10px #bf5fff, 0 0 30px #bf5fff55',
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      background: #020408;
+      font-family: 'Rajdhani', sans-serif;
+      overflow-x: hidden;
+    }
+
+    /* Grid background */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(0,245,255,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,245,255,0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Glow pulse */
+    @keyframes glow-pulse {
+      0%, 100% { text-shadow: 0 0 10px #00f5ff, 0 0 30px #00f5ff55; }
+      50% { text-shadow: 0 0 20px #00f5ff, 0 0 60px #00f5ff88, 0 0 80px #00f5ff44; }
+    }
+    @keyframes scanline {
+      0% { transform: translateY(-100%); }
+      100% { transform: translateY(100vh); }
+    }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes bar-grow {
+      from { height: 0; }
+      to { height: var(--target-h); }
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-8px); }
+    }
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+    @keyframes border-glow {
+      0%, 100% { border-color: #00f5ff44; }
+      50% { border-color: #00f5ffaa; }
+    }
+
+    .glow-title { animation: glow-pulse 3s ease-in-out infinite; }
+    .scanline {
+      position: fixed; top: 0; left: 0; right: 0;
+      height: 2px; background: rgba(0,245,255,0.15);
+      animation: scanline 6s linear infinite;
+      pointer-events: none; z-index: 999;
+    }
+    .float-card { animation: float 4s ease-in-out infinite; }
+    .cursor-blink { animation: blink 1s step-end infinite; }
+    .animated-border { animation: border-glow 2s ease-in-out infinite; }
+
+    /* Tab styles */
+    .tab-btn {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      padding: 0.6rem 1rem;
+      border: 1px solid #00f5ff22;
+      background: transparent;
+      color: #ffffff55;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .tab-btn::before {
+      content: '';
+      position: absolute; bottom: 0; left: 0; right: 0;
+      height: 2px; background: #00f5ff;
+      transform: scaleX(0); transition: transform 0.3s ease;
+    }
+    .tab-btn:hover { color: #00f5ffaa; border-color: #00f5ff44; }
+    .tab-btn:hover::before { transform: scaleX(0.5); }
+    .tab-btn.active {
+      color: #00f5ff;
+      border-color: #00f5ff66;
+      background: rgba(0,245,255,0.06);
+      box-shadow: 0 0 20px rgba(0,245,255,0.15), inset 0 0 20px rgba(0,245,255,0.04);
+    }
+    .tab-btn.active::before { transform: scaleX(1); }
+
+    .tab-panel { display: none; animation: fadeInUp 0.4s ease forwards; }
+    .tab-panel.active { display: block; }
+
+    /* Sort viz */
+    .sort-bar {
+      display: inline-block;
+      width: 28px;
+      margin: 0 2px;
+      transition: height 0.25s ease, background 0.25s ease;
+      border-radius: 3px 3px 0 0;
+      position: relative;
+    }
+
+    /* Code block */
+    .code-block {
+      background: #091a26;
+      border: 1px solid #00f5ff22;
+      border-radius: 8px;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.8rem;
+      color: #b0e0e6;
+      padding: 1.2rem 1.5rem;
+      overflow-x: auto;
+      position: relative;
+    }
+    .code-block::before {
+      content: '● ● ●';
+      display: block;
+      color: #00f5ff44;
+      margin-bottom: 0.8rem;
+      font-size: 0.7rem;
+    }
+    .kw { color: #00f5ff; }
+    .fn { color: #39ff14; }
+    .str { color: #ffe600; }
+    .cm { color: #ffffff33; font-style: italic; }
+    .num { color: #ff2d78; }
+
+    /* Complexity badge */
+    .complexity-badge {
+      display: inline-block;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.75rem;
+      padding: 0.2rem 0.6rem;
+      border-radius: 4px;
+      border: 1px solid;
+    }
+
+    /* Algorithm card */
+    .algo-card {
+      border: 1px solid #00f5ff22;
+      background: linear-gradient(135deg, #091a2688, #050d1488);
+      border-radius: 10px;
+      padding: 1.2rem 1.5rem;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(10px);
+    }
+    .algo-card:hover {
+      border-color: #00f5ff55;
+      box-shadow: 0 0 25px rgba(0,245,255,0.1);
+      transform: translateY(-2px);
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track { background: #020408; }
+    ::-webkit-scrollbar-thumb { background: #00f5ff44; border-radius: 2px; }
+
+    /* Neon text utilities */
+    .text-neon-cyan { color: #00f5ff; }
+    .text-neon-green { color: #39ff14; }
+    .text-neon-pink { color: #ff2d78; }
+    .text-neon-purple { color: #bf5fff; }
+    .text-neon-yellow { color: #ffe600; }
+
+    .border-neon-cyan { border-color: #00f5ff44; }
+
+    /* Step highlight */
+    .step-highlight { background: rgba(0,245,255,0.15) !important; box-shadow: 0 0 15px #00f5ff88 !important; }
+    .step-compare { background: rgba(255,45,120,0.7) !important; box-shadow: 0 0 15px #ff2d78 !important; }
+    .step-sorted { background: rgba(57,255,20,0.7) !important; box-shadow: 0 0 15px #39ff14 !important; }
+
+    /* Progress bar */
+    .progress-fill {
+      height: 100%;
+      transition: width 0.4s ease;
+      border-radius: 4px;
+    }
+
+    /* Mobile tap */
+    @media (max-width: 640px) {
+      .tab-btn { padding: 0.5rem 0.6rem; font-size: 0.55rem; }
+    }
+
+    .tag-pill {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 2px 10px; border-radius: 999px;
+      font-family: 'Share Tech Mono', monospace; font-size: 0.7rem;
+      border: 1px solid;
+    }
+  </style>
+</head>
+<body class="min-h-screen text-white relative">
+
+  <div class="scanline"></div>
+
+  <!-- HEADER -->
+  <header class="relative z-10 text-center py-12 px-4">
+    <div class="inline-block mb-3">
+      <span class="tag-pill border-neon-cyan text-neon-cyan" style="border-color:#00f5ff55">
+        <span>⬡</span> CS · FUNDAMENTOS
+      </span>
+    </div>
+    <h1 class="font-display text-4xl md:text-6xl font-black tracking-widest glow-title text-neon-cyan uppercase mb-3">
+      Algoritmia
+    </h1>
+    <p class="font-body text-lg md:text-xl text-white/50 tracking-widest uppercase">
+      Ordenamiento · Consola · Complejidad
+    </p>
+    <div class="mt-6 flex justify-center gap-4 flex-wrap">
+      <span class="tag-pill" style="border-color:#39ff1455; color:#39ff14">● Python</span>
+      <span class="tag-pill" style="border-color:#ff2d7855; color:#ff2d78">● Interactivo</span>
+      <span class="tag-pill" style="border-color:#bf5fff55; color:#bf5fff">● Animado</span>
+    </div>
+  </header>
+
+  <!-- TABS NAV -->
+  <nav class="sticky top-0 z-50 bg-dark-950/90 backdrop-blur-md border-b border-neon-cyan/10 py-2 px-4">
+    <div class="max-w-5xl mx-auto flex gap-1 overflow-x-auto no-scrollbar">
+      <button class="tab-btn active" onclick="switchTab('intro')">⬡ Intro</button>
+      <button class="tab-btn" onclick="switchTab('consola')">⌨ Consola</button>
+      <button class="tab-btn" onclick="switchTab('algoritmos')">⬡ Algoritmos</button>
+      <button class="tab-btn" onclick="switchTab('visualizer')">▶ Visualizer</button>
+      <button class="tab-btn" onclick="switchTab('complejidad')">∑ Complejidad</button>
+      <button class="tab-btn" onclick="switchTab('codigo')">⟨/⟩ Código</button>
+      <button class="tab-btn" onclick="switchTab('recursos')">★ Recursos</button>
+    </div>
+  </nav>
+
+  <!-- MAIN CONTENT -->
+  <main class="relative z-10 max-w-5xl mx-auto px-4 py-10">
+
+    <!-- ═══════════ TAB: INTRO ═══════════ -->
+    <div id="tab-intro" class="tab-panel active">
+      <div class="grid md:grid-cols-2 gap-6 mb-8">
+        <!-- Qué es -->
+        <div class="algo-card float-card">
+          <div class="flex items-center gap-3 mb-4">
+            <span class="text-3xl">⬡</span>
+            <h2 class="font-display text-lg text-neon-cyan tracking-widest">¿Qué es la Algoritmia?</h2>
+          </div>
+          <p class="text-white/70 leading-relaxed font-body text-base">
+            La algoritmia es el <span class="text-neon-cyan font-semibold">estudio y diseño de algoritmos</span> —
+            conjuntos de pasos ordenados y finitos que permiten <span class="text-neon-green">resolver un problema</span>
+            de forma lógica y eficiente.
+          </p>
+        </div>
+
+        <!-- Características -->
+        <div class="algo-card">
+          <div class="flex items-center gap-3 mb-4">
+            <span class="text-3xl">◈</span>
+            <h2 class="font-display text-lg text-neon-purple tracking-widest">Características</h2>
+          </div>
+          <ul class="space-y-2">
+            <li class="flex items-center gap-3 text-white/70 font-body text-base">
+              <span class="text-neon-cyan font-mono text-xs w-20 shrink-0">FINITO</span>
+              <span>Termina en algún momento</span>
+            </li>
+            <li class="flex items-center gap-3 text-white/70 font-body text-base">
+              <span class="text-neon-pink font-mono text-xs w-20 shrink-0">DEFINIDO</span>
+              <span>Cada paso es claro y preciso</span>
+            </li>
+            <li class="flex items-center gap-3 text-white/70 font-body text-base">
+              <span class="text-neon-green font-mono text-xs w-20 shrink-0">ENTRADA</span>
+              <span>Recibe datos como input</span>
+            </li>
+            <li class="flex items-center gap-3 text-white/70 font-body text-base">
+              <span class="text-neon-yellow font-mono text-xs w-20 shrink-0">SALIDA</span>
+              <span>Produce resultados</span>
+            </li>
+            <li class="flex items-center gap-3 text-white/70 font-body text-base">
+              <span class="text-neon-purple font-mono text-xs w-20 shrink-0">EFICIENTE</span>
+              <span>Usa bien tiempo y memoria</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Pseudocódigo intro -->
+      <div class="algo-card mb-6">
+        <h2 class="font-display text-sm text-neon-yellow tracking-widest mb-4">⟨/⟩ EJEMPLO EN PSEUDOCÓDIGO</h2>
+        <div class="code-block">
+          <span class="cm"># Algoritmo simple</span><br>
+          <span class="kw">leer</span> número<br>
+          <span class="kw">mostrar</span> número <span class="fn">*</span> <span class="num">2</span>
+        </div>
+      </div>
+
+      <!-- Aplicaciones reales -->
+      <div class="algo-card">
+        <h2 class="font-display text-sm text-neon-pink tracking-widest mb-4">🌐 APLICACIONES REALES</h2>
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+          <div class="text-center p-3 rounded-lg border border-neon-cyan/20 bg-neon-cyan/5 hover:bg-neon-cyan/10 transition-all cursor-default">
+            <div class="text-2xl mb-1">🗄️</div>
+            <div class="text-white/60 font-body text-xs">Bases de datos</div>
+          </div>
+          <div class="text-center p-3 rounded-lg border border-neon-green/20 bg-neon-green/5 hover:bg-neon-green/10 transition-all cursor-default">
+            <div class="text-2xl mb-1">🔍</div>
+            <div class="text-white/60 font-body text-xs">Buscadores</div>
+          </div>
+          <div class="text-center p-3 rounded-lg border border-neon-purple/20 bg-neon-purple/5 hover:bg-neon-purple/10 transition-all cursor-default">
+            <div class="text-2xl mb-1">🎯</div>
+            <div class="text-white/60 font-body text-xs">Recomendación</div>
+          </div>
+          <div class="text-center p-3 rounded-lg border border-neon-pink/20 bg-neon-pink/5 hover:bg-neon-pink/10 transition-all cursor-default">
+            <div class="text-2xl mb-1">🎮</div>
+            <div class="text-white/60 font-body text-xs">Videojuegos</div>
+          </div>
+          <div class="text-center p-3 rounded-lg border border-neon-yellow/20 bg-neon-yellow/5 hover:bg-neon-yellow/10 transition-all cursor-default">
+            <div class="text-2xl mb-1">🤖</div>
+            <div class="text-white/60 font-body text-xs">IA</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════ TAB: CONSOLA ═══════════ -->
+    <div id="tab-consola" class="tab-panel">
+      <div class="algo-card mb-6">
+        <div class="flex items-center gap-3 mb-4">
+          <span class="text-3xl">⌨</span>
+          <h2 class="font-display text-lg text-neon-cyan tracking-widest">¿Qué significa "en consola"?</h2>
+        </div>
+        <p class="text-white/70 leading-relaxed font-body text-base mb-4">
+          Trabajar <span class="text-neon-green font-semibold">"en consola"</span> significa ejecutar programas que interactúan
+          con el usuario mediante <span class="text-neon-cyan">texto puro</span>, sin ninguna interfaz gráfica.
+          Se usan la entrada y salida estándar del sistema operativo.
+        </p>
+
+        <div class="grid md:grid-cols-2 gap-4">
+          <div class="p-4 rounded-lg border border-neon-green/30 bg-neon-green/5">
+            <div class="font-display text-xs text-neon-green tracking-widest mb-2">→ ENTRADA</div>
+            <div class="font-mono text-white/70 text-sm flex items-center gap-2">
+              <span class="text-2xl">⌨️</span>
+              <span>Teclado del usuario</span>
+            </div>
+            <div class="font-mono text-white/40 text-xs mt-1">stdin / input()</div>
+          </div>
+          <div class="p-4 rounded-lg border border-neon-pink/30 bg-neon-pink/5">
+            <div class="font-display text-xs text-neon-pink tracking-widest mb-2">← SALIDA</div>
+            <div class="font-mono text-white/70 text-sm flex items-center gap-2">
+              <span class="text-2xl">🖥️</span>
+              <span>Pantalla / terminal</span>
+            </div>
+            <div class="font-mono text-white/40 text-xs mt-1">stdout / print()</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Terminal simulada interactiva -->
+      <div class="algo-card">
+        <div class="font-display text-xs text-neon-yellow tracking-widest mb-4">▶ TERMINAL SIMULADA</div>
+        <div id="terminal-output"
+          class="bg-dark-950 border border-neon-cyan/20 rounded-lg p-4 font-mono text-sm min-h-40 mb-3"
+          style="max-height:260px; overflow-y:auto;">
+          <div class="text-neon-green">Sistema iniciado. Escribe un número y pulsa Enter.</div>
+          <div class="text-white/40">──────────────────────────────</div>
+        </div>
+        <div class="flex gap-2">
+          <span class="text-neon-cyan font-mono">$</span>
+          <input id="terminal-input"
+            type="text"
+            placeholder="Ingresa un número..."
+            class="flex-1 bg-transparent border-b border-neon-cyan/40 text-neon-cyan font-mono text-sm outline-none placeholder-white/20 focus:border-neon-cyan transition-colors"
+            onkeydown="handleTerminalInput(event)" />
+        </div>
+        <p class="text-white/30 font-body text-xs mt-2">Presiona Enter · La terminal ejecutará multiplicación ×2</p>
+      </div>
+    </div>
+
+    <!-- ═══════════ TAB: ALGORITMOS ═══════════ -->
+    <div id="tab-algoritmos" class="tab-panel">
+      <p class="text-white/50 font-body text-base mb-6 tracking-wide">
+        Algoritmos que <span class="text-neon-cyan">organizan datos</span> en orden ascendente o descendente.
+        Cada uno tiene un enfoque, costo y caso de uso ideal.
+      </p>
+
+      <!-- Cards de algoritmos -->
+      <div class="space-y-4">
+        <!-- Bubble Sort -->
+        <div class="algo-card">
+          <div class="flex items-start justify-between gap-4 flex-wrap">
+            <div class="flex items-center gap-3">
+              <span class="w-10 h-10 flex items-center justify-center rounded-full bg-neon-green/20 text-neon-green font-display text-xs border border-neon-green/40">01</span>
+              <div>
+                <div class="font-display text-base text-neon-green tracking-wider">Bubble Sort</div>
+                <div class="text-white/40 font-body text-sm">Ordenamiento Burbuja</div>
+              </div>
+            </div>
+            <div class="flex gap-2 flex-wrap">
+              <span class="complexity-badge text-neon-green" style="border-color:#39ff1444">O(n²)</span>
+              <span class="complexity-badge text-white/40" style="border-color:#ffffff22">Fácil</span>
+            </div>
+          </div>
+          <div class="mt-4 text-white/60 font-body text-sm leading-relaxed">
+            Compara <strong class="text-neon-green">pares de elementos</strong> adyacentes y los intercambia si están en orden incorrecto.
+            Recorre la lista múltiples veces "empujando" el mayor hacia el final.
+          </div>
+          <div class="mt-3 font-mono text-xs text-white/40 bg-dark-950/80 rounded p-3 border border-neon-green/10">
+            [5, 3, 2] → [3, 5, 2] → [3, 2, 5] → [2, 3, 5]
+          </div>
+          <div class="mt-3 flex gap-4 text-xs font-body text-white/40">
+            <span class="text-neon-green/70">✓ Simple de implementar</span>
+            <span class="text-neon-pink/70">✗ Lento para listas grandes</span>
+          </div>
+        </div>
+
+        <!-- Selection Sort -->
+        <div class="algo-card">
+          <div class="flex items-start justify-between gap-4 flex-wrap">
+            <div class="flex items-center gap-3">
+              <span class="w-10 h-10 flex items-center justify-center rounded-full bg-neon-cyan/20 text-neon-cyan font-display text-xs border border-neon-cyan/40">02</span>
+              <div>
+                <div class="font-display text-base text-neon-cyan tracking-wider">Selection Sort</div>
+                <div class="text-white/40 font-body text-sm">Ordenamiento por Selección</div>
+              </div>
+            </div>
+            <div class="flex gap-2 flex-wrap">
+              <span class="complexity-badge text-neon-cyan" style="border-color:#00f5ff44">O(n²)</span>
+              <span class="complexity-badge text-white/40" style="border-color:#ffffff22">Fácil</span>
+            </div>
+          </div>
+          <div class="mt-4 text-white/60 font-body text-sm leading-relaxed">
+            Busca el <strong class="text-neon-cyan">elemento mínimo</strong> en cada iteración y lo coloca al inicio de la sección no ordenada.
+            Menos intercambios que Bubble Sort.
+          </div>
+          <div class="mt-3 flex gap-4 text-xs font-body text-white/40">
+            <span class="text-neon-green/70">✓ Pocos intercambios</span>
+            <span class="text-neon-pink/70">✗ Siempre O(n²)</span>
+          </div>
+        </div>
+
+        <!-- Insertion Sort -->
+        <div class="algo-card">
+          <div class="flex items-start justify-between gap-4 flex-wrap">
+            <div class="flex items-center gap-3">
+              <span class="w-10 h-10 flex items-center justify-center rounded-full bg-neon-yellow/20 text-neon-yellow font-display text-xs border border-neon-yellow/40">03</span>
+              <div>
+                <div class="font-display text-base text-neon-yellow tracking-wider">Insertion Sort</div>
+                <div class="text-white/40 font-body text-sm">Ordenamiento por Inserción</div>
+              </div>
+            </div>
+            <div class="flex gap-2 flex-wrap">
+              <span class="complexity-badge text-neon-yellow" style="border-color:#ffe60044">O(n²)</span>
+              <span class="complexity-badge text-neon-green" style="border-color:#39ff1444">O(n) best</span>
+            </div>
+          </div>
+          <div class="mt-4 text-white/60 font-body text-sm leading-relaxed">
+            Construye la lista ordenada <strong class="text-neon-yellow">de a poco</strong>, tomando cada elemento y
+            ubicándolo en la posición correcta dentro de la sección ya ordenada. Muy eficiente en listas pequeñas o casi ordenadas.
+          </div>
+          <div class="mt-3 flex gap-4 text-xs font-body text-white/40">
+            <span class="text-neon-green/70">✓ Eficiente si casi ordenado</span>
+            <span class="text-neon-pink/70">✗ Lento en listas inversas</span>
+          </div>
+        </div>
+
+        <!-- Merge Sort -->
+        <div class="algo-card">
+          <div class="flex items-start justify-between gap-4 flex-wrap">
+            <div class="flex items-center gap-3">
+              <span class="w-10 h-10 flex items-center justify-center rounded-full bg-neon-pink/20 text-neon-pink font-display text-xs border border-neon-pink/40">04</span>
+              <div>
+                <div class="font-display text-base text-neon-pink tracking-wider">Merge Sort</div>
+                <div class="text-white/40 font-body text-sm">Ordenamiento por Mezcla</div>
+              </div>
+            </div>
+            <div class="flex gap-2 flex-wrap">
+              <span class="complexity-badge text-neon-pink" style="border-color:#ff2d7844">O(n log n)</span>
+              <span class="complexity-badge text-neon-green" style="border-color:#39ff1444">Estable</span>
+            </div>
+          </div>
+          <div class="mt-4 text-white/60 font-body text-sm leading-relaxed">
+            Estrategia de <strong class="text-neon-pink">divide y conquista</strong>: divide la lista en mitades, ordena cada mitad recursivamente
+            y luego las combina (merge). Garantiza O(n log n) en todos los casos.
+          </div>
+          <div class="mt-3 flex gap-4 text-xs font-body text-white/40">
+            <span class="text-neon-green/70">✓ Siempre O(n log n)</span>
+            <span class="text-neon-pink/70">✗ Usa memoria extra</span>
+          </div>
+        </div>
+
+        <!-- Quick Sort -->
+        <div class="algo-card">
+          <div class="flex items-start justify-between gap-4 flex-wrap">
+            <div class="flex items-center gap-3">
+              <span class="w-10 h-10 flex items-center justify-center rounded-full bg-neon-purple/20 text-neon-purple font-display text-xs border border-neon-purple/40">05</span>
+              <div>
+                <div class="font-display text-base text-neon-purple tracking-wider">Quick Sort</div>
+                <div class="text-white/40 font-body text-sm">Ordenamiento Rápido</div>
+              </div>
+            </div>
+            <div class="flex gap-2 flex-wrap">
+              <span class="complexity-badge text-neon-purple" style="border-color:#bf5fff44">O(n log n)</span>
+              <span class="complexity-badge text-neon-yellow" style="border-color:#ffe60044">O(n²) worst</span>
+            </div>
+          </div>
+          <div class="mt-4 text-white/60 font-body text-sm leading-relaxed">
+            Elige un <strong class="text-neon-purple">pivote</strong>, divide en elementos menores y mayores, y ordena cada subgrupo recursivamente.
+            Uno de los más rápidos en la práctica por su bajo costo en caché.
+          </div>
+          <div class="mt-3 flex gap-4 text-xs font-body text-white/40">
+            <span class="text-neon-green/70">✓ Muy rápido en promedio</span>
+            <span class="text-neon-pink/70">✗ Peor caso O(n²)</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════ TAB: VISUALIZER ═══════════ -->
+    <div id="tab-visualizer" class="tab-panel">
+      <div class="algo-card mb-6">
+        <div class="font-display text-sm text-neon-cyan tracking-widest mb-4">▶ VISUALIZADOR INTERACTIVO</div>
+
+        <!-- Controls -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
+          <div>
+            <label class="font-display text-xs text-white/40 tracking-widest block mb-1">ALGORITMO</label>
+            <select id="algo-select"
+              class="w-full bg-dark-950 border border-neon-cyan/30 text-neon-cyan font-mono text-xs rounded p-2 outline-none focus:border-neon-cyan">
+              <option value="bubble">Bubble Sort</option>
+              <option value="selection">Selection Sort</option>
+              <option value="insertion">Insertion Sort</option>
+              <option value="merge">Merge Sort</option>
+              <option value="quick">Quick Sort</option>
+            </select>
+          </div>
+          <div>
+            <label class="font-display text-xs text-white/40 tracking-widest block mb-1">VELOCIDAD</label>
+            <select id="speed-select"
+              class="w-full bg-dark-950 border border-neon-cyan/30 text-neon-cyan font-mono text-xs rounded p-2 outline-none focus:border-neon-cyan">
+              <option value="600">Lento</option>
+              <option value="300" selected>Normal</option>
+              <option value="100">Rápido</option>
+              <option value="30">Turbo</option>
+            </select>
+          </div>
+          <div>
+            <label class="font-display text-xs text-white/40 tracking-widest block mb-1">TAMAÑO</label>
+            <input type="range" id="size-range" min="6" max="20" value="12"
+              class="w-full mt-1 accent-cyan-400"
+              oninput="document.getElementById('size-label').textContent=this.value; generateArray()">
+            <span id="size-label" class="text-neon-cyan font-mono text-xs">12</span> elementos
+          </div>
+          <div class="flex flex-col justify-end">
+            <div class="flex gap-2">
+              <button onclick="generateArray()"
+                class="flex-1 py-2 px-3 rounded font-display text-xs tracking-wider border border-neon-purple/50 text-neon-purple hover:bg-neon-purple/10 transition-all">
+                RESET
+              </button>
+              <button id="start-btn" onclick="startSort()"
+                class="flex-1 py-2 px-3 rounded font-display text-xs tracking-wider border border-neon-cyan/50 text-neon-cyan hover:bg-neon-cyan/10 transition-all">
+                ▶ START
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="grid grid-cols-3 gap-3 mb-5">
+          <div class="p-2 rounded border border-white/10 text-center">
+            <div class="font-display text-xs text-white/30 tracking-widest">COMPARACIONES</div>
+            <div id="stat-comps" class="font-mono text-neon-cyan text-lg font-bold">0</div>
+          </div>
+          <div class="p-2 rounded border border-white/10 text-center">
+            <div class="font-display text-xs text-white/30 tracking-widest">SWAPS</div>
+            <div id="stat-swaps" class="font-mono text-neon-pink text-lg font-bold">0</div>
+          </div>
+          <div class="p-2 rounded border border-white/10 text-center">
+            <div class="font-display text-xs text-white/30 tracking-widest">ESTADO</div>
+            <div id="stat-status" class="font-mono text-neon-green text-sm font-bold">LISTO</div>
+          </div>
+        </div>
+
+        <!-- Step description -->
+        <div id="step-desc" class="font-mono text-xs text-white/40 mb-4 min-h-5 text-center italic">
+          Pulsa START para comenzar la animación
+        </div>
+
+        <!-- Bars visualizer -->
+        <div id="bars-container"
+          class="flex items-end justify-center gap-0.5 bg-dark-950/50 rounded-lg border border-neon-cyan/10 p-4"
+          style="height: 220px;">
+        </div>
+
+        <!-- Legend -->
+        <div class="flex gap-4 mt-3 justify-center flex-wrap">
+          <div class="flex items-center gap-1 text-xs font-mono">
+            <span class="w-3 h-3 rounded-sm inline-block" style="background:#00f5ff"></span>
+            <span class="text-white/40">Activo</span>
+          </div>
+          <div class="flex items-center gap-1 text-xs font-mono">
+            <span class="w-3 h-3 rounded-sm inline-block" style="background:#ff2d78"></span>
+            <span class="text-white/40">Comparando</span>
+          </div>
+          <div class="flex items-center gap-1 text-xs font-mono">
+            <span class="w-3 h-3 rounded-sm inline-block" style="background:#39ff14"></span>
+            <span class="text-white/40">Ordenado</span>
+          </div>
+          <div class="flex items-center gap-1 text-xs font-mono">
+            <span class="w-3 h-3 rounded-sm inline-block bg-white/20"></span>
+            <span class="text-white/40">Sin ordenar</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════ TAB: COMPLEJIDAD ═══════════ -->
+    <div id="tab-complejidad" class="tab-panel">
+      <!-- Big O cards -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div class="algo-card text-center">
+          <div class="font-mono text-2xl text-neon-green mb-1">O(1)</div>
+          <div class="font-display text-xs text-white/40 tracking-widest">CONSTANTE</div>
+          <div class="text-white/50 text-xs mt-2 font-body">El tiempo no depende del input</div>
+        </div>
+        <div class="algo-card text-center">
+          <div class="font-mono text-2xl text-neon-cyan mb-1">O(n)</div>
+          <div class="font-display text-xs text-white/40 tracking-widest">LINEAL</div>
+          <div class="text-white/50 text-xs mt-2 font-body">Crece proporcionalmente</div>
+        </div>
+        <div class="algo-card text-center">
+          <div class="font-mono text-2xl text-neon-yellow mb-1">O(n log n)</div>
+          <div class="font-display text-xs text-white/40 tracking-widest">EFICIENTE</div>
+          <div class="text-white/50 text-xs mt-2 font-body">Merge Sort, Quick Sort</div>
+        </div>
+        <div class="algo-card text-center">
+          <div class="font-mono text-2xl text-neon-pink mb-1">O(n²)</div>
+          <div class="font-display text-xs text-white/40 tracking-widest">CUADRÁTICO</div>
+          <div class="text-white/50 text-xs mt-2 font-body">Bubble, Selection, Insertion</div>
+        </div>
+      </div>
+
+      <!-- Comparison table -->
+      <div class="algo-card mb-8">
+        <div class="font-display text-sm text-neon-cyan tracking-widest mb-4">📊 TABLA COMPARATIVA</div>
+        <div class="overflow-x-auto">
+          <table class="w-full font-mono text-xs text-center">
+            <thead>
+              <tr class="border-b border-neon-cyan/20">
+                <th class="text-left py-2 px-3 text-white/40 font-display tracking-widest">ALGORITMO</th>
+                <th class="py-2 px-3 text-white/40 font-display">MEJOR</th>
+                <th class="py-2 px-3 text-white/40 font-display">PROMEDIO</th>
+                <th class="py-2 px-3 text-white/40 font-display">PEOR</th>
+                <th class="py-2 px-3 text-white/40 font-display">ESTABLE</th>
+                <th class="py-2 px-3 text-white/40 font-display">IN-PLACE</th>
+              </tr>
+            </thead>
+            <tbody class="text-white/70">
+              <tr class="border-b border-white/5 hover:bg-neon-green/5 transition-colors">
+                <td class="text-left py-2 px-3 text-neon-green font-display text-xs tracking-wider">Bubble</td>
+                <td class="py-2 px-3 text-neon-green">O(n)</td>
+                <td class="py-2 px-3 text-neon-yellow">O(n²)</td>
+                <td class="py-2 px-3 text-neon-pink">O(n²)</td>
+                <td class="py-2 px-3 text-neon-green">✓</td>
+                <td class="py-2 px-3 text-neon-green">✓</td>
+              </tr>
+              <tr class="border-b border-white/5 hover:bg-neon-cyan/5 transition-colors">
+                <td class="text-left py-2 px-3 text-neon-cyan font-display text-xs tracking-wider">Selection</td>
+                <td class="py-2 px-3 text-neon-yellow">O(n²)</td>
+                <td class="py-2 px-3 text-neon-yellow">O(n²)</td>
+                <td class="py-2 px-3 text-neon-pink">O(n²)</td>
+                <td class="py-2 px-3 text-neon-pink">✗</td>
+                <td class="py-2 px-3 text-neon-green">✓</td>
+              </tr>
+              <tr class="border-b border-white/5 hover:bg-neon-yellow/5 transition-colors">
+                <td class="text-left py-2 px-3 text-neon-yellow font-display text-xs tracking-wider">Insertion</td>
+                <td class="py-2 px-3 text-neon-green">O(n)</td>
+                <td class="py-2 px-3 text-neon-yellow">O(n²)</td>
+                <td class="py-2 px-3 text-neon-pink">O(n²)</td>
+                <td class="py-2 px-3 text-neon-green">✓</td>
+                <td class="py-2 px-3 text-neon-green">✓</td>
+              </tr>
+              <tr class="border-b border-white/5 hover:bg-neon-pink/5 transition-colors">
+                <td class="text-left py-2 px-3 text-neon-pink font-display text-xs tracking-wider">Merge</td>
+                <td class="py-2 px-3 text-neon-green">O(n log n)</td>
+                <td class="py-2 px-3 text-neon-green">O(n log n)</td>
+                <td class="py-2 px-3 text-neon-green">O(n log n)</td>
+                <td class="py-2 px-3 text-neon-green">✓</td>
+                <td class="py-2 px-3 text-neon-pink">✗</td>
+              </tr>
+              <tr class="hover:bg-neon-purple/5 transition-colors">
+                <td class="text-left py-2 px-3 text-neon-purple font-display text-xs tracking-wider">Quick</td>
+                <td class="py-2 px-3 text-neon-green">O(n log n)</td>
+                <td class="py-2 px-3 text-neon-green">O(n log n)</td>
+                <td class="py-2 px-3 text-neon-pink">O(n²)</td>
+                <td class="py-2 px-3 text-neon-pink">✗</td>
+                <td class="py-2 px-3 text-neon-green">✓</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Estabilidad e In-place -->
+      <div class="grid md:grid-cols-2 gap-4">
+        <div class="algo-card">
+          <div class="font-display text-xs text-neon-purple tracking-widest mb-3">⟁ ESTABILIDAD</div>
+          <p class="text-white/60 font-body text-sm leading-relaxed">
+            Un algoritmo es <span class="text-neon-purple">estable</span> si mantiene el orden relativo de
+            elementos con valores iguales después del ordenamiento.
+          </p>
+        </div>
+        <div class="algo-card">
+          <div class="font-display text-xs text-neon-yellow tracking-widest mb-3">◈ IN-PLACE</div>
+          <p class="text-white/60 font-body text-sm leading-relaxed">
+            Un algoritmo es <span class="text-neon-yellow">in-place</span> si no necesita
+            memoria extra significativa — ordena modificando el arreglo original.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════ TAB: CÓDIGO ═══════════ -->
+    <div id="tab-codigo" class="tab-panel">
+      <div class="font-display text-sm text-neon-cyan tracking-widest mb-4">⟨/⟩ IMPLEMENTACIÓN EN PYTHON</div>
+
+      <!-- Selector -->
+      <div class="flex gap-2 flex-wrap mb-5">
+        <button class="code-tab-btn tab-btn active text-xs" onclick="showCode('bubble', this)">Bubble</button>
+        <button class="code-tab-btn tab-btn text-xs" onclick="showCode('selection', this)">Selection</button>
+        <button class="code-tab-btn tab-btn text-xs" onclick="showCode('insertion', this)">Insertion</button>
+        <button class="code-tab-btn tab-btn text-xs" onclick="showCode('merge', this)">Merge</button>
+        <button class="code-tab-btn tab-btn text-xs" onclick="showCode('quick', this)">Quick</button>
+        <button class="code-tab-btn tab-btn text-xs" onclick="showCode('consola', this)">Consola Completo</button>
+      </div>
+
+      <div id="code-display" class="code-block text-sm leading-7">
+        <!-- Filled by JS -->
+      </div>
+    </div>
+
+    <!-- ═══════════ TAB: RECURSOS ═══════════ -->
+    <div id="tab-recursos" class="tab-panel">
+      <!-- Tips -->
+      <div class="algo-card mb-6">
+        <div class="font-display text-sm text-neon-yellow tracking-widest mb-4">🧠 CONSEJOS PARA APRENDER</div>
+        <div class="space-y-3">
+          <div class="flex items-start gap-3">
+            <span class="text-neon-cyan font-mono text-xs w-6 shrink-0 mt-0.5">01</span>
+            <div>
+              <div class="text-white/80 font-body text-base">Practica en consola</div>
+              <div class="text-white/40 font-body text-sm">Python, C++ o Java son perfectos para empezar</div>
+            </div>
+          </div>
+          <div class="flex items-start gap-3">
+            <span class="text-neon-pink font-mono text-xs w-6 shrink-0 mt-0.5">02</span>
+            <div>
+              <div class="text-white/80 font-body text-base">Visualiza los pasos</div>
+              <div class="text-white/40 font-body text-sm">Dibuja en papel o usa el visualizador de esta página</div>
+            </div>
+          </div>
+          <div class="flex items-start gap-3">
+            <span class="text-neon-green font-mono text-xs w-6 shrink-0 mt-0.5">03</span>
+            <div>
+              <div class="text-white/80 font-body text-base">Compara tiempos de ejecución</div>
+              <div class="text-white/40 font-body text-sm">Mide con listas de distintos tamaños</div>
+            </div>
+          </div>
+          <div class="flex items-start gap-3">
+            <span class="text-neon-purple font-mono text-xs w-6 shrink-0 mt-0.5">04</span>
+            <div>
+              <div class="text-white/80 font-body text-base">Entiende, no memorices</div>
+              <div class="text-white/40 font-body text-sm">Lo más importante es comprender cómo funcionan</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Plataformas -->
+      <div class="algo-card mb-6">
+        <div class="font-display text-sm text-neon-cyan tracking-widest mb-4">🎯 PLATAFORMAS DE PRÁCTICA</div>
+        <div class="grid md:grid-cols-2 gap-3">
+          <a href="https://www.hackerrank.com" target="_blank"
+            class="flex items-center gap-3 p-3 rounded-lg border border-neon-green/30 bg-neon-green/5 hover:bg-neon-green/10 transition-all group">
+            <span class="text-2xl">⚔️</span>
+            <div>
+              <div class="text-neon-green font-display text-xs tracking-wider group-hover:underline">HackerRank</div>
+              <div class="text-white/40 font-body text-xs">Desafíos estructurados por dificultad</div>
+            </div>
+            <span class="ml-auto text-white/20 group-hover:text-neon-green transition-colors">→</span>
+          </a>
+          <a href="https://www.leetcode.com" target="_blank"
+            class="flex items-center gap-3 p-3 rounded-lg border border-neon-yellow/30 bg-neon-yellow/5 hover:bg-neon-yellow/10 transition-all group">
+            <span class="text-2xl">🏆</span>
+            <div>
+              <div class="text-neon-yellow font-display text-xs tracking-wider group-hover:underline">LeetCode</div>
+              <div class="text-white/40 font-body text-xs">Preparación para entrevistas técnicas</div>
+            </div>
+            <span class="ml-auto text-white/20 group-hover:text-neon-yellow transition-colors">→</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Resumen final -->
+      <div class="algo-card border-neon-cyan/30" style="border-color:#00f5ff44; box-shadow: 0 0 30px rgba(0,245,255,0.08)">
+        <div class="font-display text-sm text-neon-cyan tracking-widest mb-4">🚀 RESUMEN RÁPIDO</div>
+        <div class="space-y-2">
+          <div class="flex items-center gap-3 font-body text-sm text-white/70">
+            <span class="text-neon-cyan">▸</span>
+            <span><strong class="text-white">Algoritmia</strong> = resolver problemas con pasos lógicos</span>
+          </div>
+          <div class="flex items-center gap-3 font-body text-sm text-white/70">
+            <span class="text-neon-green">▸</span>
+            <span><strong class="text-white">Ordenamiento</strong> = organizar datos de forma eficiente</span>
+          </div>
+          <div class="flex items-center gap-3 font-body text-sm text-white/70">
+            <span class="text-neon-pink">▸</span>
+            <span><strong class="text-white">En consola</strong> = interacción por texto puro</span>
+          </div>
+          <div class="flex items-center gap-3 font-body text-sm text-white/70">
+            <span class="text-neon-yellow">▸</span>
+            <span><strong class="text-white">Algoritmos clave</strong>: Bubble · Selection · Insertion · Merge · Quick</span>
+          </div>
+          <div class="flex items-center gap-3 font-body text-sm text-white/70">
+            <span class="text-neon-purple">▸</span>
+            <span><strong class="text-white">Lo más importante</strong>: entender, no memorizar</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="relative z-10 text-center py-8 border-t border-neon-cyan/10 mt-10">
+    <p class="font-display text-xs text-white/20 tracking-widest uppercase">
+      Algoritmia · Fundamentos de CS ·
+      <span class="text-neon-cyan/40">[ END OF FILE ]</span>
+    </p>
+  </footer>
+
+  <!-- ════════════════ JAVASCRIPT ════════════════ -->
+  <script>
+    // ─── TABS ───────────────────────────────────────────────────────
+    function switchTab(id) {
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.tab-btn:not(.code-tab-btn)').forEach(b => b.classList.remove('active'));
+      document.getElementById('tab-' + id).classList.add('active');
+      event.currentTarget.classList.add('active');
+      if (id === 'visualizer') { generateArray(); }
+      if (id === 'codigo') { showCode('bubble', document.querySelector('.code-tab-btn')); }
+    }
+
+    // ─── TERMINAL SIMULADA ──────────────────────────────────────────
+    function handleTerminalInput(e) {
+      if (e.key !== 'Enter') return;
+      const input = document.getElementById('terminal-input');
+      const out = document.getElementById('terminal-output');
+      const val = input.value.trim();
+      const num = parseFloat(val);
+
+      const line = (html) => {
+        const d = document.createElement('div');
+        d.innerHTML = html;
+        out.appendChild(d);
+        out.scrollTop = out.scrollHeight;
+      };
+
+      line(`<span style="color:#00f5ff">$ </span><span style="color:#fff">${val}</span>`);
+
+      if (val === '') {
+        line('<span style="color:#ff2d78">⚠ Error: ingresa un número</span>');
+      } else if (isNaN(num)) {
+        line(`<span style="color:#ff2d78">⚠ "${val}" no es un número válido</span>`);
+      } else {
+        const resultado = num * 2;
+        setTimeout(() => line(`<span style="color:#ffe600">leer número → ${num}</span>`), 100);
+        setTimeout(() => line(`<span style="color:#39ff14">mostrar número × 2 → <strong>${resultado}</strong></span>`), 350);
+      }
+      input.value = '';
+    }
+
+    // ─── CODE SNIPPETS ──────────────────────────────────────────────
+    const codeSnippets = {
+      bubble: `<span class="cm"># ── Bubble Sort ────────────────────</span>
+<span class="kw">def</span> <span class="fn">bubble_sort</span>(arr):
+    n = <span class="fn">len</span>(arr)
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(n):
+        <span class="kw">for</span> j <span class="kw">in</span> <span class="fn">range</span>(<span class="num">0</span>, n-i-<span class="num">1</span>):
+            <span class="kw">if</span> arr[j] > arr[j+<span class="num">1</span>]:
+                arr[j], arr[j+<span class="num">1</span>] = arr[j+<span class="num">1</span>], arr[j]
+    <span class="kw">return</span> arr
+
+<span class="cm"># Ejemplo:</span>
+nums = [<span class="num">5</span>, <span class="num">3</span>, <span class="num">8</span>, <span class="num">1</span>, <span class="num">9</span>, <span class="num">2</span>]
+<span class="fn">print</span>(<span class="fn">bubble_sort</span>(nums))
+<span class="cm"># → [1, 2, 3, 5, 8, 9]</span>`,
+
+      selection: `<span class="cm"># ── Selection Sort ─────────────────</span>
+<span class="kw">def</span> <span class="fn">selection_sort</span>(arr):
+    n = <span class="fn">len</span>(arr)
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(n):
+        min_idx = i
+        <span class="kw">for</span> j <span class="kw">in</span> <span class="fn">range</span>(i+<span class="num">1</span>, n):
+            <span class="kw">if</span> arr[j] < arr[min_idx]:
+                min_idx = j
+        arr[i], arr[min_idx] = arr[min_idx], arr[i]
+    <span class="kw">return</span> arr`,
+
+      insertion: `<span class="cm"># ── Insertion Sort ─────────────────</span>
+<span class="kw">def</span> <span class="fn">insertion_sort</span>(arr):
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="num">1</span>, <span class="fn">len</span>(arr)):
+        key = arr[i]
+        j = i - <span class="num">1</span>
+        <span class="kw">while</span> j >= <span class="num">0</span> <span class="kw">and</span> arr[j] > key:
+            arr[j+<span class="num">1</span>] = arr[j]
+            j -= <span class="num">1</span>
+        arr[j+<span class="num">1</span>] = key
+    <span class="kw">return</span> arr`,
+
+      merge: `<span class="cm"># ── Merge Sort ─────────────────────</span>
+<span class="kw">def</span> <span class="fn">merge_sort</span>(arr):
+    <span class="kw">if</span> <span class="fn">len</span>(arr) <= <span class="num">1</span>:
+        <span class="kw">return</span> arr
+    mid = <span class="fn">len</span>(arr) // <span class="num">2</span>
+    left  = <span class="fn">merge_sort</span>(arr[:mid])
+    right = <span class="fn">merge_sort</span>(arr[mid:])
+    <span class="kw">return</span> <span class="fn">merge</span>(left, right)
+
+<span class="kw">def</span> <span class="fn">merge</span>(left, right):
+    result, i, j = [], <span class="num">0</span>, <span class="num">0</span>
+    <span class="kw">while</span> i < <span class="fn">len</span>(left) <span class="kw">and</span> j < <span class="fn">len</span>(right):
+        <span class="kw">if</span> left[i] <= right[j]:
+            result.<span class="fn">append</span>(left[i]); i += <span class="num">1</span>
+        <span class="kw">else</span>:
+            result.<span class="fn">append</span>(right[j]); j += <span class="num">1</span>
+    <span class="kw">return</span> result + left[i:] + right[j:]`,
+
+      quick: `<span class="cm"># ── Quick Sort ─────────────────────</span>
+<span class="kw">def</span> <span class="fn">quick_sort</span>(arr):
+    <span class="kw">if</span> <span class="fn">len</span>(arr) <= <span class="num">1</span>:
+        <span class="kw">return</span> arr
+    pivot = arr[<span class="fn">len</span>(arr) // <span class="num">2</span>]
+    left   = [x <span class="kw">for</span> x <span class="kw">in</span> arr <span class="kw">if</span> x < pivot]
+    middle = [x <span class="kw">for</span> x <span class="kw">in</span> arr <span class="kw">if</span> x == pivot]
+    right  = [x <span class="kw">for</span> x <span class="kw">in</span> arr <span class="kw">if</span> x > pivot]
+    <span class="kw">return</span> <span class="fn">quick_sort</span>(left) + middle + <span class="fn">quick_sort</span>(right)`,
+
+      consola: `<span class="cm"># ── Bubble Sort en Consola ──────────</span>
+numeros = []
+
+n = <span class="fn">int</span>(<span class="fn">input</span>(<span class="str">"¿Cuántos números quieres ingresar? "</span>))
+
+<span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(n):
+    num = <span class="fn">int</span>(<span class="fn">input</span>(<span class="str">"Ingresa un número: "</span>))
+    numeros.<span class="fn">append</span>(num)
+
+<span class="cm"># ── Ordenamiento Burbuja ────────────</span>
+<span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="fn">len</span>(numeros)):
+    <span class="kw">for</span> j <span class="kw">in</span> <span class="fn">range</span>(<span class="num">0</span>, <span class="fn">len</span>(numeros)-i-<span class="num">1</span>):
+        <span class="kw">if</span> numeros[j] > numeros[j+<span class="num">1</span>]:
+            numeros[j], numeros[j+<span class="num">1</span>] = numeros[j+<span class="num">1</span>], numeros[j]
+
+<span class="fn">print</span>(<span class="str">"Lista ordenada:"</span>, numeros)`
+    };
+
+    function showCode(name, btn) {
+      document.getElementById('code-display').innerHTML = codeSnippets[name] || '';
+      document.querySelectorAll('.code-tab-btn').forEach(b => b.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+    }
+
+    // ─── VISUALIZER ─────────────────────────────────────────────────
+    let currentArray = [];
+    let isSorting = false;
+    let comps = 0, swaps = 0;
+
+    function randomArray(n) {
+      return Array.from({length: n}, () => Math.floor(Math.random() * 90) + 10);
+    }
+
+    function generateArray() {
+      if (isSorting) return;
+      const n = parseInt(document.getElementById('size-range').value);
+      currentArray = randomArray(n);
+      comps = 0; swaps = 0;
+      document.getElementById('stat-comps').textContent = '0';
+      document.getElementById('stat-swaps').textContent = '0';
+      document.getElementById('stat-status').textContent = 'LISTO';
+      document.getElementById('stat-status').style.color = '#39ff14';
+      document.getElementById('step-desc').textContent = 'Pulsa START para comenzar la animación';
+      renderBars(currentArray, [], [], []);
+    }
+
+    function renderBars(arr, comparing=[], swapping=[], sorted=[]) {
+      const container = document.getElementById('bars-container');
+      const maxVal = Math.max(...arr);
+      const containerH = 180;
+      container.innerHTML = '';
+      arr.forEach((val, i) => {
+        const bar = document.createElement('div');
+        const h = Math.max(8, Math.floor((val / maxVal) * containerH));
+        bar.className = 'sort-bar';
+        bar.style.height = h + 'px';
+        bar.style.flex = '1';
+        bar.style.maxWidth = '40px';
+        bar.style.borderRadius = '3px 3px 0 0';
+        if (sorted.includes(i)) {
+          bar.style.background = 'rgba(57,255,20,0.75)';
+          bar.style.boxShadow = '0 0 8px #39ff1488';
+        } else if (swapping.includes(i)) {
+          bar.style.background = 'rgba(255,45,120,0.85)';
+          bar.style.boxShadow = '0 0 12px #ff2d78aa';
+        } else if (comparing.includes(i)) {
+          bar.style.background = 'rgba(0,245,255,0.85)';
+          bar.style.boxShadow = '0 0 12px #00f5ffaa';
+        } else {
+          bar.style.background = 'rgba(255,255,255,0.18)';
+        }
+        container.appendChild(bar);
+      });
+    }
+
+    function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+    async function startSort() {
+      if (isSorting) return;
+      const algo = document.getElementById('algo-select').value;
+      const speed = parseInt(document.getElementById('speed-select').value);
+      isSorting = true;
+      comps = 0; swaps = 0;
+      document.getElementById('start-btn').textContent = '⏳';
+      document.getElementById('stat-status').textContent = 'SORTING';
+      document.getElementById('stat-status').style.color = '#00f5ff';
+
+      const arr = [...currentArray];
+
+      const update = async (comparing, swapping, sorted, desc) => {
+        renderBars(arr, comparing, swapping, sorted);
+        document.getElementById('stat-comps').textContent = comps;
+        document.getElementById('stat-swaps').textContent = swaps;
+        if (desc) document.getElementById('step-desc').textContent = desc;
+        await sleep(speed);
+      };
+
+      if (algo === 'bubble') await animBubble(arr, update);
+      else if (algo === 'selection') await animSelection(arr, update);
+      else if (algo === 'insertion') await animInsertion(arr, update);
+      else if (algo === 'merge') await animMerge(arr, update);
+      else if (algo === 'quick') await animQuick(arr, 0, arr.length - 1, update, []);
+
+      renderBars(arr, [], [], arr.map((_, i) => i));
+      document.getElementById('stat-status').textContent = '✓ LISTO';
+      document.getElementById('stat-status').style.color = '#39ff14';
+      document.getElementById('step-desc').textContent = '🎉 Ordenamiento completado';
+      document.getElementById('start-btn').textContent = '▶ START';
+      currentArray = arr;
+      isSorting = false;
+    }
+
+    async function animBubble(arr, update) {
+      const n = arr.length;
+      const sorted = [];
+      for (let i = 0; i < n; i++) {
+        for (let j = 0; j < n - i - 1; j++) {
+          comps++;
+          await update([j, j+1], [], sorted, `Comparando arr[${j}]=${arr[j]} y arr[${j+1}]=${arr[j+1]}`);
+          if (arr[j] > arr[j+1]) {
+            [arr[j], arr[j+1]] = [arr[j+1], arr[j]];
+            swaps++;
+            await update([], [j, j+1], sorted, `⇄ Swap: ${arr[j]} ↔ ${arr[j+1]}`);
+          }
+        }
+        sorted.unshift(n - 1 - i);
+      }
+    }
+
+    async function animSelection(arr, update) {
+      const n = arr.length;
+      const sorted = [];
+      for (let i = 0; i < n; i++) {
+        let minIdx = i;
+        for (let j = i + 1; j < n; j++) {
+          comps++;
+          await update([minIdx, j], [], sorted, `Buscando mínimo... arr[${j}]=${arr[j]} vs mínimo=${arr[minIdx]}`);
+          if (arr[j] < arr[minIdx]) minIdx = j;
+        }
+        if (minIdx !== i) {
+          [arr[i], arr[minIdx]] = [arr[minIdx], arr[i]];
+          swaps++;
+          await update([], [i, minIdx], sorted, `⇄ Colocando mínimo ${arr[i]} en posición ${i}`);
+        }
+        sorted.push(i);
+      }
+    }
+
+    async function animInsertion(arr, update) {
+      const n = arr.length;
+      const sorted = [0];
+      for (let i = 1; i < n; i++) {
+        let key = arr[i];
+        let j = i - 1;
+        await update([i], [], sorted, `Insertando elemento ${key}`);
+        while (j >= 0 && arr[j] > key) {
+          comps++;
+          arr[j + 1] = arr[j];
+          swaps++;
+          await update([], [j, j+1], sorted, `Desplazando ${arr[j]} a la derecha`);
+          j--;
+        }
+        arr[j + 1] = key;
+        sorted.push(i);
+        await update([], [], sorted, `${key} insertado en posición ${j+1}`);
+      }
+    }
+
+    async function animMerge(arr, update) {
+      const aux = [...arr];
+      async function mergeSort(lo, hi) {
+        if (lo >= hi) return;
+        const mid = Math.floor((lo + hi) / 2);
+        await mergeSort(lo, mid);
+        await mergeSort(mid + 1, hi);
+        let i = lo, j = mid + 1, k = lo;
+        const temp = [];
+        while (i <= mid && j <= hi) {
+          comps++;
+          await update([i, j], [], [], `Mezclando: arr[${i}]=${arr[i]} vs arr[${j}]=${arr[j]}`);
+          if (arr[i] <= arr[j]) temp.push(arr[i++]);
+          else temp.push(arr[j++]);
+        }
+        while (i <= mid) temp.push(arr[i++]);
+        while (j <= hi) temp.push(arr[j++]);
+        for (let x = 0; x < temp.length; x++) {
+          arr[lo + x] = temp[x];
+          swaps++;
+          await update([], [lo + x], [], `Escribiendo ${arr[lo+x]}`);
+        }
+      }
+      await mergeSort(0, arr.length - 1);
+    }
+
+    async function animQuick(arr, lo, hi, update, sorted) {
+      if (lo >= hi) { if (lo === hi) sorted.push(lo); return; }
+      const pivot = arr[Math.floor((lo + hi) / 2)];
+      await update([Math.floor((lo+hi)/2)], [], sorted, `Pivote elegido: ${pivot}`);
+      let i = lo, j = hi;
+      while (i <= j) {
+        while (arr[i] < pivot) { comps++; i++; }
+        while (arr[j] > pivot) { comps++; j--; }
+        if (i <= j) {
+          [arr[i], arr[j]] = [arr[j], arr[i]];
+          swaps++;
+          await update([], [i, j], sorted, `⇄ Swap arr[${i}]=${arr[i]} ↔ arr[${j}]=${arr[j]}`);
+          i++; j--;
+        }
+      }
+      sorted.push(j + 1);
+      if (lo < j) await animQuick(arr, lo, j, update, sorted);
+      if (i < hi) await animQuick(arr, i, hi, update, sorted);
+    }
+
+    // ─── INIT ────────────────────────────────────────────────────────
+    window.onload = () => {
+      generateArray();
+      showCode('bubble', document.querySelector('.code-tab-btn'));
+    };
+  </script>
+</body>
+</html>
