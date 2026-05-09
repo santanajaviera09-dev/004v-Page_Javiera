@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guía Maestra: Git & GitHub</title>
+    <!-- Tailwind CSS vía CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .command-block { background-color: #1e1e1e; color: #d4d4d4; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <!-- Navbar -->
+    <nav class="bg-slate-900 text-white sticky top-0 z-50 shadow-lg">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <i class="fab fa-github text-3xl"></i>
+                <span class="font-bold text-xl tracking-tight">GitMaster Docs</span>
+            </div>
+            <div class="hidden md:flex space-x-6 text-sm font-medium">
+                <a href="#introduccion" class="hover:text-blue-400 transition">Inicio</a>
+                <a href="#conceptos" class="hover:text-blue-400 transition">Conceptos</a>
+                <a href="#comandos" class="hover:text-blue-400 transition">Comandos</a>
+                <a href="#flujo" class="hover:text-blue-400 transition">Flujo de Trabajo</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header id="introduccion" class="bg-gradient-to-r from-slate-900 to-slate-800 text-white py-20">
+        <div class="container mx-auto px-6 text-center">
+            <h1 class="text-4xl md:text-6xl font-bold mb-4">Aprende Git y GitHub desde cero</h1>
+            <p class="text-xl text-slate-300 max-w-2xl mx-auto">La guía definitiva para gestionar tus proyectos, colaborar en equipo y despegar tu carrera como desarrollador.</p>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-6 py-12">
+        
+        <!-- Diferencia Git vs GitHub -->
+        <section class="mb-20">
+            <h2 class="text-3xl font-bold mb-8 text-center">¿Git o GitHub? No son lo mismo</h2>
+            <div class="grid md:grid-cols-2 gap-8">
+                <div class="bg-white p-8 rounded-xl shadow-md border-t-4 border-orange-500">
+                    <h3 class="text-2xl font-bold mb-4 flex items-center">
+                        <i class="fas fa-code-branch mr-3 text-orange-500"></i> Git
+                    </h3>
+                    <p class="text-gray-600 mb-4">Es el sistema de control de versiones que vive en tu computadora. Inventado por Linus Torvalds.</p>
+                    <ul class="space-y-2 text-sm">
+                        <li><i class="fas fa-check text-green-500 mr-2"></i> Funciona localmente.</li>
+                        <li><i class="fas fa-check text-green-500 mr-2"></i> Gestiona el historial de archivos.</li>
+                        <li><i class="fas fa-check text-green-500 mr-2"></i> Es gratuito y de código abierto.</li>
+                    </ul>
+                </div>
+                <div class="bg-white p-8 rounded-xl shadow-md border-t-4 border-blue-500">
+                    <h3 class="text-2xl font-bold mb-4 flex items-center">
+                        <i class="fab fa-github mr-3 text-blue-500"></i> GitHub
+                    </h3>
+                    <p class="text-gray-600 mb-4">Es la plataforma en la nube que aloja tus repositorios de Git y permite colaborar.</p>
+                    <ul class="space-y-2 text-sm">
+                        <li><i class="fas fa-check text-green-500 mr-2"></i> Funciona en internet (la nube).</li>
+                        <li><i class="fas fa-check text-green-500 mr-2"></i> Red social para programadores.</li>
+                        <li><i class="fas fa-check text-green-500 mr-2"></i> Herramientas de despliegue y CI/CD.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Conceptos Clave -->
+        <section id="conceptos" class="mb-20">
+            <h2 class="text-3xl font-bold mb-10 text-slate-900">Conceptos Fundamentales</h2>
+            <div class="grid md:grid-cols-3 gap-6">
+                <!-- Repo -->
+                <div class="bg-white p-6 rounded-lg shadow hover:shadow-lg transition">
+                    <div class="text-blue-600 mb-4 text-2xl"><i class="fas fa-folder-open"></i></div>
+                    <h4 class="font-bold text-lg mb-2">Repositorio (Repo)</h4>
+                    <p class="text-gray-600 text-sm">La carpeta de tu proyecto que contiene todo el código y el historial de cambios.</p>
+                </div>
+                <!-- Commit -->
+                <div class="bg-white p-6 rounded-lg shadow hover:shadow-lg transition">
+                    <div class="text-green-600 mb-4 text-2xl"><i class="fas fa-camera"></i></div>
+                    <h4 class="font-bold text-lg mb-2">Commit</h4>
+                    <p class="text-gray-600 text-sm">Una "foto" o captura de tu proyecto en un momento exacto. Cada uno tiene un mensaje descriptivo.</p>
+                </div>
+                <!-- Branch -->
+                <div class="bg-white p-6 rounded-lg shadow hover:shadow-lg transition">
+                    <div class="text-purple-600 mb-4 text-2xl"><i class="fas fa-code-fork"></i></div>
+                    <h4 class="font-bold text-lg mb-2">Branch (Rama)</h4>
+                    <p class="text-gray-600 text-sm">Una línea paralela de desarrollo para probar funciones sin romper el código principal.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Comandos Principales -->
+        <section id="comandos" class="mb-20 bg-slate-900 text-white p-10 rounded-2xl shadow-2xl">
+            <h2 class="text-3xl font-bold mb-8 text-center">La "Caja de Herramientas" de Comandos</h2>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead>
+                        <tr class="border-b border-slate-700 text-blue-400">
+                            <th class="py-4 px-4 font-bold">Comando</th>
+                            <th class="py-4 px-4 font-bold">Descripción</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-800">
+                        <tr>
+                            <td class="py-4 px-4 font-mono text-yellow-400">git init</td>
+                            <td class="py-4 px-4">Inicia un nuevo repositorio local.</td>
+                        </tr>
+                        <tr>
+                            <td class="py-4 px-4 font-mono text-yellow-400">git status</td>
+                            <td class="py-4 px-4">Muestra el estado actual de los archivos.</td>
+                        </tr>
+                        <tr>
+                            <td class="py-4 px-4 font-mono text-yellow-400">git add .</td>
+                            <td class="py-4 px-4">Prepara todos los archivos modificados (Staging Area).</td>
+                        </tr>
+                        <tr>
+                            <td class="py-4 px-4 font-mono text-yellow-400">git commit -m "..."</td>
+                            <td class="py-4 px-4">Guarda los cambios con un mensaje descriptivo.</td>
+                        </tr>
+                        <tr>
+                            <td class="py-4 px-4 font-mono text-yellow-400">git push</td>
+                            <td class="py-4 px-4">Sube tus cambios locales al servidor de GitHub.</td>
+                        </tr>
+                        <tr>
+                            <td class="py-4 px-4 font-mono text-yellow-400">git pull</td>
+                            <td class="py-4 px-4">Descarga y fusiona los cambios remotos en tu PC.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Estados de Git Diagrama Mental -->
+        <section class="mb-20">
+            <h2 class="text-3xl font-bold mb-8 text-center text-slate-900">Estados de Git</h2>
+            <div class="flex flex-col md:flex-row justify-between items-center space-y-6 md:space-y-0 md:space-x-4">
+                <div class="w-full md:w-1/3 bg-red-50 p-6 rounded-lg text-center border border-red-200">
+                    <span class="block font-bold text-red-700">Working Directory</span>
+                    <small>Archivos sin guardar</small>
+                </div>
+                <div class="text-gray-400"><i class="fas fa-arrow-right hidden md:block"></i></div>
+                <div class="w-full md:w-1/3 bg-yellow-50 p-6 rounded-lg text-center border border-yellow-200">
+                    <span class="block font-bold text-yellow-700">Staging Area</span>
+                    <small>Archivos preparados (add)</small>
+                </div>
+                <div class="text-gray-400"><i class="fas fa-arrow-right hidden md:block"></i></div>
+                <div class="w-full md:w-1/3 bg-green-50 p-6 rounded-lg text-center border border-green-200">
+                    <span class="block font-bold text-green-700">Local Repository</span>
+                    <small>Cambios confirmados (commit)</small>
+                </div>
+            </div>
+        </section>
+
+        <!-- Flujo Profesional -->
+        <section id="flujo" class="mb-20">
+            <div class="bg-blue-50 border border-blue-100 p-10 rounded-2xl">
+                <h2 class="text-3xl font-bold mb-6 text-blue-900">Flujo Real de Trabajo</h2>
+                <div class="space-y-6">
+                    <div class="flex items-start">
+                        <div class="bg-blue-600 text-white rounded-full h-8 w-8 flex items-center justify-center shrink-0 mr-4">1</div>
+                        <div>
+                            <h5 class="font-bold text-lg">Preparación</h5>
+                            <p class="text-gray-600">Crea tu carpeta, inicia con <code>git init</code> y crea tus archivos.</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start">
+                        <div class="bg-blue-600 text-white rounded-full h-8 w-8 flex items-center justify-center shrink-0 mr-4">2</div>
+                        <div>
+                            <h5 class="font-bold text-lg">Guardado Local</h5>
+                            <div class="command-block p-4 rounded mt-2 font-mono text-sm">
+                                git add .<br>
+                                git commit -m "Agrega login de usuario"
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex items-start">
+                        <div class="bg-blue-600 text-white rounded-full h-8 w-8 flex items-center justify-center shrink-0 mr-4">3</div>
+                        <div>
+                            <h5 class="font-bold text-lg">Conexión y Subida</h5>
+                            <p class="text-gray-600">Conecta tu repo con GitHub y sube tu código:</p>
+                            <div class="command-block p-4 rounded mt-2 font-mono text-sm">
+                                git remote add origin URL_DEL_REPO<br>
+                                git push -u origin main
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 text-white py-12">
+        <div class="container mx-auto px-6 text-center">
+            <p class="mb-4">Guía creada para el aprendizaje de Git y GitHub con Tailwind CSS.</p>
+            <div class="flex justify-center space-x-6 text-2xl">
+                <a href="#" class="hover:text-blue-400"><i class="fab fa-github"></i></a>
+                <a href="#" class="hover:text-blue-400"><i class="fab fa-twitter"></i></a>
+                <a href="#" class="hover:text-blue-400"><i class="fab fa-linkedin"></i></a>
+            </div>
+            <p class="mt-8 text-slate-500 text-sm">&copy; 2026 Manual del Desarrollador.</p>
+        </div>
+    </footer>
+
+</body>
+</html>
